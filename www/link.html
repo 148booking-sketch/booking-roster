@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Link · 148 Roster</title>
+<title>Link · Booking Roster</title>
 <meta name="description" content="Tutti i link e il booking in un unico posto.">
 <link rel="stylesheet" href="/assets/style.css">
 <style>
@@ -145,8 +145,8 @@ function tiktokBox(a){
 
 async function init(){
   try{ A=(await api('artist-get.php?slug='+encodeURIComponent(slug))).artist; }
-  catch(e){ document.getElementById('main').innerHTML=`<div class="empty">Artista non trovato.<br><a class="btn ghost sm" style="margin-top:14px" href="/">Torna a 148 Roster</a></div>`; return; }
-  document.title=(A.stage_name||'Artista')+' · Link · 148 Roster';
+  catch(e){ document.getElementById('main').innerHTML=`<div class="empty">Artista non trovato.<br><a class="btn ghost sm" style="margin-top:14px" href="/">Torna a Booking Roster</a></div>`; return; }
+  document.title=(A.stage_name||'Artista')+' · Link · Booking Roster';
   render();
 }
 
@@ -239,7 +239,7 @@ function render(){
 
     <a class="btn primary" style="width:100%;display:block;text-align:center;box-sizing:border-box;margin-top:8px" href="/${esc(a.slug||'')}">Booking: chiedi disponibilità</a>
 
-    <div class="bio-foot">Pagina gestita su <a href="/" style="text-decoration:underline">148 Roster</a></div>`;
+    <div class="bio-foot">Pagina gestita su <a href="/" style="text-decoration:underline">Booking Roster</a></div>`;
   setupBioToggle();
 }
 init();

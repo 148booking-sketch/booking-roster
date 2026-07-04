@@ -1,6 +1,6 @@
 -- ============================================================
--- Crea/aggiorna l'account admin di 148 Roster.
--- Esegui in phpMyAdmin → DB web01207_148roster → scheda SQL.
+-- Crea/aggiorna l'account admin di Booking Roster.
+-- Esegui in phpMyAdmin → DB web01277_rostbook → scheda SQL.
 --
 -- TEMPLATE — non mettere qui una password in chiaro o un hash reale: questo
 -- file finisce su git (repo pubblico). Genera l'hash bcrypt localmente:

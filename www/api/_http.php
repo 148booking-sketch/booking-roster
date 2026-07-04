@@ -16,7 +16,7 @@ function normalize_url(string $url): ?string {
   return $url;
 }
 
-// Sessione stessa-origine (artisti.148booking.it). Cookie httpOnly.
+// Sessione stessa-origine (bookingroster.it). Cookie httpOnly.
 function boot_session(): void {
   if (session_status() === PHP_SESSION_ACTIVE) return;
   $c = config();

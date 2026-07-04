@@ -1,4 +1,4 @@
-/* 148 Roster — helper condivisi frontend */
+/* Booking Roster — helper condivisi frontend */
 const API = '/api';
 
 async function api(path, {method = 'GET', body = null} = {}) {

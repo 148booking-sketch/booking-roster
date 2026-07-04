@@ -8,7 +8,7 @@ require_once __DIR__ . '/_db.php';
 function send_mail(string $to, string $subject, string $htmlBody): bool {
   $c = config();
   $from     = $c['mail_from']      ?? 'noreply@148booking.it';
-  $fromName = $c['mail_from_name'] ?? '148 Roster';
+  $fromName = $c['mail_from_name'] ?? 'Booking Roster';
 
   $headers = implode("\r\n", [
     'MIME-Version: 1.0',
@@ -25,27 +25,27 @@ function send_mail(string $to, string $subject, string $htmlBody): bool {
 /** Invia l'email di verifica con il link che attiva l'account. */
 function send_verification_email(string $email, string $name, string $token): bool {
   $c = config();
-  $link = rtrim($c['app_url'] ?? 'https://artisti.148booking.it', '/') . '/api/verify-email.php?token=' . $token;
+  $link = rtrim($c['app_url'] ?? 'https://bookingroster.it', '/') . '/api/verify-email.php?token=' . $token;
   $name = trim($name) ?: 'ciao';
   $body = mail_layout('Verifica la tua email',
-      '<p>' . htmlspecialchars($name) . ', benvenuto in 148 Roster! Conferma la tua email per attivare l\'account.</p>'
+      '<p>' . htmlspecialchars($name) . ', benvenuto in Booking Roster! Conferma la tua email per attivare l\'account.</p>'
     . '<p style="margin:20px 0"><a href="' . htmlspecialchars($link) . '" '
     . 'style="background:#1a1c22;color:#fff;padding:12px 20px;border-radius:10px;text-decoration:none;display:inline-block">Verifica email</a></p>'
     . '<p style="font-size:13px;color:#777">Se non hai creato tu questo account, ignora questa email.</p>'
     . '<p style="font-size:12px;color:#999;word-break:break-all">' . htmlspecialchars($link) . '</p>');
-  return @send_mail($email, 'Verifica la tua email · 148 Roster', $body);
+  return @send_mail($email, 'Verifica la tua email · Booking Roster', $body);
 }
 
-/** Layout email di base per 148 Roster. $footerHtml opzionale (es. link disiscrizione). */
+/** Layout email di base per Booking Roster. $footerHtml opzionale (es. link disiscrizione). */
 function mail_layout(string $title, string $bodyHtml, string $footerHtml = ''): string {
   $c = config();
-  $app = $c['app_name'] ?? '148 Roster';
+  $app = $c['app_name'] ?? 'Booking Roster';
   return '<div style="font-family:Inter,Arial,sans-serif;max-width:520px;margin:0 auto;color:#1a1c22">'
     . '<div style="font-size:20px;font-weight:700;margin-bottom:16px">148·Roster</div>'
     . '<h2 style="font-size:18px;margin:0 0 12px">' . htmlspecialchars($title) . '</h2>'
     . '<div style="font-size:15px;line-height:1.55;color:#333">' . $bodyHtml . '</div>'
     . '<hr style="border:none;border-top:1px solid #eee;margin:22px 0">'
-    . '<div style="font-size:12px;color:#999">' . htmlspecialchars($app) . ' · artisti.148booking.it</div>'
+    . '<div style="font-size:12px;color:#999">' . htmlspecialchars($app) . ' · bookingroster.it</div>'
     . ($footerHtml !== '' ? '<div style="font-size:12px;color:#999;margin-top:6px">' . $footerHtml . '</div>' : '')
     . '</div>';
 }
@@ -74,7 +74,7 @@ function build_promoter_digest_html(array $data, string $freqLabel, string $name
   $hasContent = !empty($data['new_artists']) || !empty($data['promo_artists']) || !empty($data['responded_requests']);
   if (!$hasContent && !$force) return null;
 
-  $appUrl = rtrim(config()['app_url'] ?? 'https://artisti.148booking.it', '/');
+  $appUrl = rtrim(config()['app_url'] ?? 'https://bookingroster.it', '/');
   $artistLink = fn($slug) => $appUrl . '/' . rawurlencode($slug);
 
   $sections = '';
@@ -128,16 +128,16 @@ function send_promoter_digest_email(string $email, string $name, array $data, st
   $body = build_promoter_digest_html($data, $freqLabel, $name, $force);
   if ($body === null) return false;
 
-  $appUrl = rtrim(config()['app_url'] ?? 'https://artisti.148booking.it', '/');
+  $appUrl = rtrim(config()['app_url'] ?? 'https://bookingroster.it', '/');
   $prefsLink = $appUrl . '/account.html';
 
-  $footer = 'Ricevi questa email perché hai attivato gli alert ' . htmlspecialchars($freqLabel) . ' su 148 Roster. '
+  $footer = 'Ricevi questa email perché hai attivato gli alert ' . htmlspecialchars($freqLabel) . ' su Booking Roster. '
     . '<a href="' . htmlspecialchars($prefsLink) . '" style="color:#999">Gestisci preferenze</a>';
   if ($unsubToken !== '') {
     $unsubLink = $appUrl . '/api/promoter-unsubscribe.php?token=' . urlencode($unsubToken);
     $footer .= ' · <a href="' . htmlspecialchars($unsubLink) . '" style="color:#999">Disiscriviti</a>';
   }
 
-  $html = mail_layout('Novità per te su 148 Roster', $body, $footer);
-  return send_mail($email, 'Novità su 148 Roster · nuovi artisti e promo', $html);
+  $html = mail_layout('Novità per te su Booking Roster', $body, $footer);
+  return send_mail($email, 'Novità su Booking Roster · nuovi artisti e promo', $html);
 }

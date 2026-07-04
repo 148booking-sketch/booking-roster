@@ -1,4 +1,4 @@
-/* 148 Roster — form artista CONDIVISO tra profilo.html (self-edit) e admin.html (admin).
+/* Booking Roster — form artista CONDIVISO tra profilo.html (self-edit) e admin.html (admin).
  * Un'unica fonte per markup + logica dei campi comuni: se cambia qui, cambia ovunque.
  * Uso:
  *   artistFormMount('mountId', prefix)         una volta, all'avvio pagina (inietta HTML + autocomplete comune)

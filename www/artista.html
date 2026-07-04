@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Artista · 148 Roster</title>
-<meta name="description" content="Profilo artista su 148 Roster">
+<title>Artista · Booking Roster</title>
+<meta name="description" content="Profilo artista su Booking Roster">
 <link rel="stylesheet" href="/assets/style.css">
 <style>
 .listing{max-width:var(--maxw);margin:0 auto;padding:28px 24px}
@@ -243,7 +243,7 @@ async function init(){
   ME=(await getMe()).user;
   try{ A=(await api('artist-get.php?slug='+encodeURIComponent(slug))).artist; }
   catch(e){ document.getElementById('main').innerHTML=`<div class="empty">Artista non trovato.<br><a class="btn ghost sm" style="margin-top:14px" href="/">Torna alla ricerca</a></div>`; return; }
-  document.title=(A.stage_name||'Artista')+' · 148 Roster';
+  document.title=(A.stage_name||'Artista')+' · Booking Roster';
   render();
 }
 

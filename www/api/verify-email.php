@@ -8,7 +8,7 @@
  */
 require_once __DIR__ . '/_http.php';
 
-$app   = rtrim(config()['app_url'] ?? 'https://artisti.148booking.it', '/');
+$app   = rtrim(config()['app_url'] ?? 'https://bookingroster.it', '/');
 $token = trim($_GET['token'] ?? '');
 $redir = function (string $path) use ($app) { header('Location: ' . $app . $path); exit; };
 

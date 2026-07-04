@@ -1,11 +1,11 @@
-# 148 Roster — piattaforma artisti ↔ promoter
+# Booking Roster — piattaforma artisti ↔ promoter
 
 Marketplace di **matching** tra artisti emergenti e promoter.
 L'artista pubblica dati, cachet e rimborsi; il promoter cerca per **cachet, distanza dal locale e genere** e invia una richiesta di contatto. Modello **disintermediato**: l'accordo si chiude fuori piattaforma (niente pagamenti/contratti gestiti qui).
 
-- **Dominio:** artisti.148booking.it
+- **Dominio:** bookingroster.it
 - **Stack:** PHP 8 + MySQL (PDO), frontend HTML/JS vanilla, deploy via FTP
-- **DB:** `web01207_148roster`
+- **DB:** `web01277_rostbook`
 
 ## Struttura
 
@@ -31,7 +31,7 @@ www/                   → tutto ciò che va in public_html del sottodominio
 
 ## Setup iniziale (una volta)
 
-1. **Crea il DB** su phpMyAdmin (già fatto: `web01207_148roster`).
+1. **Crea il DB** su phpMyAdmin (già fatto: `web01277_rostbook`).
 2. **Importa lo schema:** phpMyAdmin → DB → SQL → incolla `db/schema.sql`.
 3. **Configura:** copia `config.example.php` in `config.php` e metti la password DB
    (già predisposto in locale; verifica `db_host` — di norma `localhost`).
@@ -57,7 +57,7 @@ www/                   → tutto ciò che va in public_html del sottodominio
 Pannello per inserire **a mano** artisti e promoter (`www/admin.html`).
 
 1. In `config.php` imposta `admin_setup_token` (già predisposto in locale).
-2. Vai su `https://artisti.148booking.it/admin` → *"Primo avvio: crea il primo admin"*,
+2. Vai su `https://bookingroster.it/admin` → *"Primo avvio: crea il primo admin"*,
    inserisci token + email + password. Crea l'account admin (funziona una sola volta:
    si disabilita appena esiste un admin).
 3. **Svuota** `admin_setup_token` in `config.php` per chiudere il bootstrap.

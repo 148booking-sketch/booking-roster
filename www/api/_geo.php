@@ -34,7 +34,7 @@ function geocode_comune(string $comune, ?string $provincia = null): ?array {
   curl_setopt_array($ch, [
     CURLOPT_RETURNTRANSFER => true,
     CURLOPT_TIMEOUT        => 8,
-    CURLOPT_USERAGENT      => '148Roster/1.0 (artisti.148booking.it)',
+    CURLOPT_USERAGENT      => 'BookingRoster/1.0 (bookingroster.it)',
   ]);
   $res = curl_exec($ch);
   curl_close($ch);

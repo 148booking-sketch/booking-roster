@@ -1,27 +1,27 @@
 <?php
 /**
- * 148 ROSTER — configurazione (TEMPLATE)
+ * BOOKING ROSTER — configurazione (TEMPLATE)
  * Copia questo file in `config.php` e inserisci i valori reali.
  * `config.php` è in .gitignore: NON deve mai finire su Git/FTP pubblico.
  */
 return [
   // --- Database MySQL ---
   'db_host' => 'localhost',            // su hosting condiviso quasi sempre "localhost"
-  'db_name' => 'web01207_148roster',
-  'db_user' => 'web01207_148roster',
+  'db_name' => 'INSERISCI_IL_DB',
+  'db_user' => 'INSERISCI_L_UTENTE',
   'db_pass' => 'INSERISCI_LA_PASSWORD',
   'db_charset' => 'utf8mb4',
 
   // --- App ---
-  'app_url'  => 'https://artisti.148booking.it',
-  'app_name' => '148 Roster',
+  'app_url'  => 'https://bookingroster.it',
+  'app_name' => 'Booking Roster',
 
   // --- Email (per verifica account / notifiche richieste) ---
-  'mail_from'      => 'noreply@148booking.it',
-  'mail_from_name' => '148 Roster',
+  'mail_from'      => 'noreply@bookingroster.it',
+  'mail_from_name' => 'Booking Roster',
 
   // --- Sicurezza ---
-  'session_name' => 'roster_sid',
+  'session_name' => 'bookingroster_sid',
   // Token usa-e-getta per creare il PRIMO admin via /api/admin-bootstrap.php.
   // Impostane uno lungo e casuale; poi puoi svuotarlo (disabilita il bootstrap).
   'admin_setup_token' => 'CAMBIA_QUESTO_TOKEN_ADMIN',

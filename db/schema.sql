@@ -1,11 +1,11 @@
 -- ============================================================
--- 148 ROSTER — schema MySQL
+-- BOOKING ROSTER — schema MySQL
 -- Piattaforma di matching artisti emergenti ↔ promoter
--- Dominio: artisti.148booking.it
+-- Dominio: bookingroster.it (ex artisti.148booking.it, che resta online in parallelo
+-- sul vecchio hosting con la sua copia separata di questo schema)
 -- Modello: vetrina/matching disintermediato (no pagamenti in piattaforma)
 --
--- Import:  mysql -u web01207_148roster -p web01207_148roster < schema.sql
--- oppure incolla in phpMyAdmin > SQL.
+-- Import: incolla in phpMyAdmin > SQL (nome DB/utente dipendono dall'hosting).
 -- Charset utf8mb4 per emoji/accenti. Motore InnoDB per le FK.
 -- ============================================================
 
