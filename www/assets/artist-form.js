@@ -301,7 +301,10 @@ function artistMissingFields(pf) {
   const filled = v => String(v ?? '').trim() !== '';
   const checks = {
     'Bio': filled(pf.bio), 'Calendario': filled(pf.calendar_url),
-    'Comune': filled(pf.comune), 'Provincia': filled(pf.provincia), 'Telefono': filled(pf.phone),
+    'Comune': filled(pf.comune),
+    // Non richiesta per un comune base estero (nessuna sigla provincia italiana esiste per lui).
+    'Provincia': filled(pf.provincia) || !isItalianComune(pf.comune),
+    'Telefono': filled(pf.phone),
     'Tipo di show': filled(pf.formazione), 'On stage': filled(pf.componenti),
     'Generi': (pf.genres || []).length > 0,
     'Spotify': filled(soc.spotify), 'Apple Music': filled(soc.applemusic), 'Instagram': filled(soc.instagram),

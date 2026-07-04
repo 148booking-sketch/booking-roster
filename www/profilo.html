@@ -105,6 +105,7 @@ async function init(){
   }
   if (p.published != 1){
     const b=document.getElementById('reviewBanner'); b.style.display='';
+    await loadComuni();
     const missing = artistMissingFields(p);
     b.innerHTML = missing.length
       ? `⏳ <b>Profilo incompleto.</b> Compila anche: <b>${missing.map(esc).join(', ')}</b>. Diventerà visibile ai promoter dopo l'approvazione dello staff 148.`

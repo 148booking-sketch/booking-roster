@@ -473,7 +473,7 @@ function miniSocialIcon(plat, v){
    un'unica lista. Le città non italiane non hanno provincia: il campo Prov. resta vuoto per
    loro (colonna DB CHAR(2), solo per le sigle italiane). */
 let _comuni;
-async function comuniAutocomplete(input, onPick) {
+async function loadComuni() {
   if (!_comuni) {
     const [it, eu, cap, us] = await Promise.all([
       fetch('/assets/comuni.json').then(r => r.json()),
@@ -486,6 +486,20 @@ async function comuniAutocomplete(input, onPick) {
       .concat(cap.map(c => [c[0], c[1], false]))
       .concat(us.map(c => [c[0], c[1], false]));
   }
+  return _comuni;
+}
+/* true se il comune è italiano (specchio di is_italian_comune() in api/_geo.php). Se l'elenco
+   non è ancora stato caricato risponde true (assume italiano): stesso comportamento prudente
+   di prima, la provincia resta richiesta finché la lista non è pronta. */
+function isItalianComune(name) {
+  if (!_comuni) return true;
+  const n = (name || '').trim().toLowerCase();
+  if (!n) return false;
+  const hit = _comuni.find(c => c[0].toLowerCase() === n);
+  return hit ? !!hit[2] : false;
+}
+async function comuniAutocomplete(input, onPick) {
+  await loadComuni();
   const wrap = document.createElement('div'); wrap.className = 'ac-list';
   input.parentNode.style.position = 'relative'; input.parentNode.appendChild(wrap);
   let sel = -1, items = [];

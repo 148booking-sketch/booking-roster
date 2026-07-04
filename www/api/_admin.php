@@ -4,6 +4,7 @@
  * require_admin() → utente admin loggato, altrimenti 401/403.
  */
 require_once __DIR__ . '/_http.php';
+require_once __DIR__ . '/_geo.php';
 
 function require_admin(): array {
   $u = current_user();
@@ -49,7 +50,8 @@ function artist_publish_missing_fields(array $row): array {
     'Bio'              => $filled($row['bio'] ?? null),
     'Calendario'       => $filled($row['calendar_url'] ?? null),
     'Comune'           => $filled($row['comune'] ?? null),
-    'Provincia'        => $filled($row['provincia'] ?? null),
+    // Non richiesta per un comune base estero (nessuna sigla provincia italiana esiste per lui).
+    'Provincia'        => $filled($row['provincia'] ?? null) || !is_italian_comune((string)($row['comune'] ?? '')),
     'Telefono'         => $filled($row['phone'] ?? null),
     'Tipo di show'     => $filled($row['formazione'] ?? null),
     'On stage'         => $filled($row['componenti'] ?? null),

@@ -51,6 +51,27 @@ function geocode_comune(string $comune, ?string $provincia = null): ?array {
   return $coords;
 }
 
+/** Elenco comuni italiani [nome, provincia], la stessa fonte usata dall'autocomplete frontend. */
+function comuni_italia(): array {
+  static $list = null;
+  if ($list === null) {
+    $path = __DIR__ . '/../assets/comuni.json';
+    $list = is_file($path) ? (json_decode(file_get_contents($path), true) ?: []) : [];
+  }
+  return $list;
+}
+
+/** true se $comune corrisponde (case-insensitive) a un comune italiano noto.
+ *  Usato per NON richiedere la provincia quando il comune base è estero. */
+function is_italian_comune(string $comune): bool {
+  $comune = trim(mb_strtolower($comune));
+  if ($comune === '') return false;
+  foreach (comuni_italia() as $c) {
+    if (mb_strtolower($c[0]) === $comune) return true;
+  }
+  return false;
+}
+
 /** Distanza in km tra due punti (Haversine). */
 function haversine_km(float $lat1, float $lng1, float $lat2, float $lng2): float {
   $R = 6371.0;

@@ -2,7 +2,10 @@
 /**
  * POST /api/admin-update-promoter.php   (solo admin)
  * Aggiorna TUTTI i dati di un promoter (utente + profilo). NON la password.
- * Body: { id, email, status, org_name, tipo, phone, comune, provincia, website }
+ * Body: { id, email, status, org_name, tipo, phone, comune, provincia, website, role? }
+ * `role` (opzionale, 'promoter'|'management') converte l'account tra i due ruoli: la tabella
+ * promoter_profiles ha la stessa forma per entrambi, quindi non serve migrare dati — passando
+ * a 'management' l'utente ottiene subito accesso a management.html (gestione roster artisti).
  */
 require_once __DIR__ . '/_admin.php';
 require_once __DIR__ . '/_geo.php';
@@ -17,6 +20,8 @@ $st = db()->prepare('SELECT role FROM users WHERE id = ?');
 $st->execute([$id]);
 $role = $st->fetchColumn();
 if (!in_array($role, ['promoter', 'management'], true)) fail('not_a_promoter', 404);
+
+$newRole = in_array($in['role'] ?? '', ['promoter', 'management'], true) ? $in['role'] : $role;
 
 $email = strtolower(trim($in['email'] ?? ''));
 $org   = trim($in['org_name'] ?? '');
@@ -43,8 +48,8 @@ if ($comune !== '') {
 $pdo = db();
 $pdo->beginTransaction();
 try {
-  $pdo->prepare('UPDATE users SET email = ?, display_name = ?, status = ? WHERE id = ?')
-      ->execute([$email, $org, $status, $id]);
+  $pdo->prepare('UPDATE users SET email = ?, display_name = ?, status = ?, role = ? WHERE id = ?')
+      ->execute([$email, $org, $status, $newRole, $id]);
 
   $pdo->prepare(
     'UPDATE promoter_profiles SET org_name=?, tipo=?, phone=?, comune=?, provincia=?, lat=?, lng=?, website=?
@@ -57,4 +62,4 @@ try {
   fail('update_failed', 500);
 }
 
-ok(['id' => $id, 'geocoded' => $lat !== null]);
+ok(['id' => $id, 'geocoded' => $lat !== null, 'role' => $newRole]);

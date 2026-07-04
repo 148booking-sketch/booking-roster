@@ -206,6 +206,15 @@
           <div class="hint">"In attesa": accede e scrive richieste ma non vede i cachet. "Attivo": sblocca i prezzi.</div>
         </div>
       </div>
+      <div class="row" id="p_roleWrap" style="display:none">
+        <div class="field" style="max-width:260px"><label>Ruolo account</label>
+          <select id="p_role">
+            <option value="promoter">Promoter</option>
+            <option value="management">Booking / Management (gestisce un roster di artisti)</option>
+          </select>
+          <div class="hint">Passando a "Booking / Management" l'account ottiene subito accesso a "Il tuo roster" e può creare/gestire artisti propri — dati e stato restano invariati.</div>
+        </div>
+      </div>
       <div class="row">
         <div class="field"><label>Nome locale / festival / promoter *</label><input id="p_org" required></div>
         <div class="field" style="max-width:200px"><label>Tipo</label>
@@ -495,6 +504,7 @@ function newPromoter(){
   editPId = null; formP.reset();
   p_passWrap.style.display=''; p_pass.required=true;
   p_status.value = 'pending'; p_banner.style.display='none';
+  p_roleWrap.style.display='none';
   p_submit.textContent='Crea promoter';
 }
 
@@ -506,7 +516,7 @@ async function savePromoter(e){ e.preventDefault();
   };
   try {
     if (editPId){
-      await api('admin-update-promoter.php',{method:'POST',body:{...bodyBase, id:editPId}});
+      await api('admin-update-promoter.php',{method:'POST',body:{...bodyBase, id:editPId, role:val('p_role')}});
       toast('Promoter aggiornato ✓');
     } else {
       const r = await api('admin-create-promoter.php',{method:'POST',body:{...bodyBase, password:val('p_pass')}});
@@ -527,6 +537,7 @@ async function editUser(id, role){
       a_passWrap.style.display='none'; a_pass.required=false; a_pass.value='';
       a_statusWrap.style.display=''; setV('a_status', u.status);
       a_banner.style.display=''; a_banner.textContent = 'Modifica artista #'+id+' — '+ (p.stage_name||u.display_name||'');
+      await loadComuni();
       a_pubStatus.style.display='flex'; setPublishIndicator(p.published==1, artistMissingFields(p));
       a_submit.textContent='Salva modifiche';
       setV('a_email',u.email);
@@ -539,8 +550,9 @@ async function editUser(id, role){
       tab('promoter'); showPromoterForm(); editPId = id;
       p_passWrap.style.display='none'; p_pass.required=false; p_pass.value='';
       setV('p_status', u.status);
-      p_banner.style.display=''; p_banner.textContent = 'Modifica promoter #'+id+' — '+ (p.org_name||u.display_name||'');
+      p_banner.style.display=''; p_banner.textContent = 'Modifica ' + (u.role==='management'?'booking/management':'promoter') + ' #'+id+' — '+ (p.org_name||u.display_name||'');
       p_submit.textContent='Salva modifiche';
+      p_roleWrap.style.display=''; setV('p_role', u.role);
       setV('p_email',u.email); setV('p_org',p.org_name); setV('p_tipo',p.tipo);
       setV('p_comune',p.comune); setV('p_prov',p.provincia); setV('p_phone',p.phone); setV('p_web',p.website);
     }
