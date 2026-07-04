@@ -45,7 +45,25 @@ Uso: `icon('heart', 20, 1.8)` → markup `<svg>` con `currentColor` (eredita il 
 - **Card artista**: immagine quadrata (foto/gradiente) + `.verif` in alto a sx + cuore in alto a dx + nome/tipo·città/cachet sotto, senza bordo.
 - **Shell admin**: sidebar `#17171b` (voci a icona, attiva = brand, contatori richieste, card utente in basso) + contenuto bianco con breadcrumb, titolo con avatar+stato+azioni, barra salvataggio sticky.
 
-## Stato di adozione (rollout completato 2026-07-04)
+## Struttura per area (template ufficiale, dal progetto design — 2026-07-05)
+| Area | Layout |
+|---|---|
+| Pubbliche + artista loggato (home 5a, pagina artista 5b, profilo 4a, richieste artista 6a, mappa, calendario) | **Header orizzontale** con link testuali + campana + avatar |
+| **Promoter/agenzia loggati** — Preferiti (5c), Le mie richieste (6b), Account & notifiche (7a) | **Sidebar bianca** `mountPromoterShell()` (216px, voci con badge, card utente) |
+| Auth (10a/10b/11d) | Card centrata su fondo `#fafafa`, CTA brand full-width (`.auth-*`) |
+| Admin (2b, 3a-c, 10c, 12b) | Rail scuro `#17171b` |
+| Email (13a-i) | `mail_layout()`: barra brand 4px, logo centrato, CTA rosa, footer societario; digest = `digest_layout()` con header scuro + KPI |
+
+**Punti chiave del template:**
+- Card artista home (5a): badge "Verificato" pill bianco in alto a sx sull'immagine, cuore bianco in alto a dx, sotto solo nome / tipo·città / prezzo — nessun overlay informativo.
+- Pagina artista (5b): breadcrumb, hero 380px foto + info (nome, chips generi grigie, stat row numeri grandi), booking box con prezzo grande + CTA "Richiedi questo artista" → **modale 12a** (data con check libero/occupato dal calendario, cachet proposto, messaggio).
+- Preferiti (5c): pagina UNICA — lista a sinistra (con ricerca) + calendario disponibilità del selezionato a destra; voce "Tutti i preferiti" = vista aggregata X/Y liberi per giorno.
+- Richieste promoter (6b): tabella densa con pill filtri stato; artista (6a): card. Thread messaggi integrato in entrambe.
+- Account & notifiche (7a): impostazioni a sinistra, feed notifiche + riepilogo email (segmented control) a destra.
+- Multilink (11c): header gradiente scuro con avatar bordo bianco + social translucidi, link bianchi centrati su fondo `#fafafa`.
+- Stati vuoti (11e): `.empty` con titolo display + sottotitolo (+ `.empty-ico`).
+
+## Stato di adozione (rollout completato 2026-07-04, template integrale 2026-07-05)
 - ✅ **Fondamenta**: token, set icone SVG (43 icone), `renderNav()` con avatar dropdown + campana, componenti condivisi, `/styleguide.html` + questo doc.
 - ✅ **Shell admin** (`admin.html`): sidebar scura + contenuto largo + titoli vista + badge contatori; KPI e liste senza emoji (icone SVG via `injectIcons()`/`data-ic`).
 - ✅ **Pagine migrate**: home (category bar e icone rapide in SVG, cuore preferiti), registrati (card ruolo con icone), richieste (card redesign + avatar iniziali + thread messaggi), account, preferiti + calendario preferiti, management. Il pulsante preferito è ora un **cuore** (pieno brand quando attivo).

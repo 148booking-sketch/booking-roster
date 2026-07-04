@@ -161,6 +161,28 @@
     </div>
   </section>
 
+  <!-- SHELL PROMOTER -->
+  <section class="sg-sec">
+    <h2>Shell promoter / agenzia</h2>
+    <p class="desc">Per promoter e agenzie loggati, le pagine di lavoro (<b>Preferiti</b>, <b>Le mie richieste</b>, <b>Account & notifiche</b>) usano una <b>sidebar bianca</b> (216px) al posto dell'header: logo + "Area promoter/agenzia", voci con badge contatore (attiva = fondo rosa chiaro + barra brand), Esci e card utente in basso. Montata da <code>mountPromoterShell(u, vocattiva)</code> in <code>api.js</code> sulle pagine con <code>#pageContent</code>. Home, mappa, calendario e pagina artista restano con l'header orizzontale.</p>
+    <div class="sg-panel spec">
+      Voci: Cerca artisti · Mappa · Preferiti <span class="badge">n</span> · Le mie richieste <span class="badge">n</span> · Account & notifiche · <i>(solo agenzia)</i> Il tuo roster · Esci + card utente.<br>
+      Classi: <code>.pshell / .pside / .ps-item(.on) / .ps-badge / .pmain / .pmain-pad / .ptitle / .psub</code>.
+    </div>
+  </section>
+
+  <!-- AUTH -->
+  <section class="sg-sec">
+    <h2>Pagine auth</h2>
+    <p class="desc">Login, registrazione e reset: card bianca centrata su fondo <code>#fafafa</code>, titolo display + sottotitolo, CTA brand a tutta larghezza (radius 11), separatore "oppure", footer link. Classi <code>.auth-bg / .auth-card / .auth-title / .auth-sub / .btn.cta / .auth-sep / .auth-foot / .auth-icobox</code>.</p>
+  </section>
+
+  <!-- EMAIL -->
+  <section class="sg-sec">
+    <h2>Email transazionali</h2>
+    <p class="desc">Template unico in <code>api/_mail.php → mail_layout()</code>: barra brand 4px in alto, logo centrato, titolo display, contenuto, <b>CTA rosa brand centrata</b> (<code>mail_cta()</code>), footer grigio con dati societari + "Centro assistenza · Preferenze email". Il digest promoter usa <code>digest_layout()</code>: header scuro #17171b con logo bianco, KPI a 3 colonne, lista "Da non perdere", CTA.</p>
+  </section>
+
   <!-- SHELL ADMIN -->
   <section class="sg-sec">
     <h2>Shell admin</h2>

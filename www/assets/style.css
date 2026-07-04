@@ -301,7 +301,10 @@ textarea{min-height:100px;resize:vertical}
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--txt);color:#fff;padding:14px 20px;border-radius:12px;box-shadow:var(--shadow-lg);z-index:200;font-weight:600;opacity:0;transition:.25s;pointer-events:none}
 .toast.show{opacity:1;bottom:34px}
 .toast.err{background:var(--brand)}
-.empty{text-align:center;color:var(--muted);padding:60px 20px}
+/* stato vuoto (design 11e): box centrato, titolo display, sottotitolo, eventuale CTA */
+.empty{text-align:center;color:var(--muted);padding:44px 30px;font-size:13.5px;line-height:1.5}
+.empty b,.empty .et{display:block;font:700 17px var(--f-display);color:var(--txt);margin-bottom:6px}
+.empty-ico{width:60px;height:60px;border-radius:16px;background:#f2f2f2;color:#9a9aa2;display:flex;align-items:center;justify-content:center;margin:0 auto 16px}
 .autocomplete{position:relative}
 .ac-list{position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid var(--line);border-radius:12px;margin-top:6px;max-height:240px;overflow:auto;z-index:60;display:none;box-shadow:var(--shadow)}
 .ac-list.show{display:block}

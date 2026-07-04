@@ -986,14 +986,12 @@ async function doBootstrap(e){ e.preventDefault();
 .tg.bad{background:#fbeaef;color:#c0395e}
 #gate{max-width:460px;margin:0 auto}
 .area{font-family:var(--f-display);font-size:18px;font-weight:700;margin:26px 0 12px;padding-bottom:8px;border-bottom:2px solid var(--line)}
-.fsec{border:1px solid var(--line);border-radius:16px;padding:18px 20px;margin-bottom:14px}
-.fsec-h{font-family:var(--f-display);font-size:21px;font-weight:700;margin:0 0 14px}
+/* sezioni form (design 3a): bianche, titolo in maiuscoletto tenue */
+.fsec{border:1px solid var(--line2);border-radius:16px;padding:18px 20px;margin-bottom:14px;background:#fff}
+.fsec-h{font:700 11px var(--f-body);letter-spacing:.06em;text-transform:uppercase;color:#9a9aa2;margin:0 0 14px}
 .fsec h3{margin:16px 0 8px;font-size:16px}
 .infogrid{display:grid;grid-template-columns:84px 1fr;gap:16px;align-items:start;margin-bottom:14px}
-.fsec.info{background:#f3f8ff;border-color:#dbe7fb}
-.fsec.music{background:#faf3fb;border-color:#eed9ef}
-.fsec.money{background:#f1fbf5;border-color:#cdeed8}
-.fsec.tech{background:#fff8ef;border-color:#ffe4bd}
+.fsec.info,.fsec.music,.fsec.money,.fsec.tech{background:#fff;border-color:var(--line2)}
 .req-report{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
 .rc{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--panel)}
 .rc-n{font-size:22px;font-weight:700;font-family:var(--f-display)}
