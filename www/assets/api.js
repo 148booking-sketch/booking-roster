@@ -612,7 +612,7 @@ async function openSearchPopup(){
             </div>
           </div>
           <div class="field"><label>Generi</label>
-            <div class="chips">${genres.map(g => `<span class="chip chip-ic" data-slug="${esc(g.slug)}" onclick="pickSearchGenre(this)">${genreIcon(g.slug, 14, 1.8)} ${esc(g.name)}</span>`).join('')}</div>
+            <div class="chips">${genres.map(g => `<span class="chip" data-slug="${esc(g.slug)}" onclick="pickSearchGenre(this)">${GENRE_ICONS[g.slug] || '🎵'} ${esc(g.name)}</span>`).join('')}</div>
           </div>
           <div class="field"><label>Tipo di show</label>
             <div class="chips">${SHOW_TYPES.map(([v, l]) => `<span class="chip" data-v="${v}" onclick="pickSearchShow(this)">${esc(l)}</span>`).join('')}</div>

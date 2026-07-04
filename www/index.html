@@ -233,8 +233,8 @@ async function init(){
   renderSortIcons();
   genres=(await api('genres.php')).genres.filter(g=>g.cnt>0);
   document.getElementById('catbar').innerHTML =
-    `<div class="cat${state.genres.size?'':' on'}" data-slug="" onclick="pickCat(this)"><span class="ic">${icon('grid',24,1.6)}</span>Tutti</div>` +
-    genres.map(g=>`<div class="cat${state.genres.has(g.slug)?' on':''}" data-slug="${g.slug}" onclick="pickCat(this)"><span class="ic">${genreIcon(g.slug)}</span>${esc(g.name)}</div>`).join('');
+    `<div class="cat${state.genres.size?'':' on'}" data-slug="" onclick="pickCat(this)"><span class="ic">✨</span>Tutti</div>` +
+    genres.map(g=>`<div class="cat${state.genres.has(g.slug)?' on':''}" data-slug="${g.slug}" onclick="pickCat(this)"><span class="ic">${GENRE_ICONS[g.slug]||'🎵'}</span>${esc(g.name)}</div>`).join('');
 
   initMap();
   search();
