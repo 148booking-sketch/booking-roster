@@ -37,6 +37,7 @@
 <body>
 <nav class="nav" id="nav"></nav>
 
+<div id="pageContent" style="display:none">
 <div class="avz">
   <div class="avz-head">
     <h1>Disponibilità artisti</h1>
@@ -53,6 +54,7 @@
   <div class="avz-box"><div class="avz-grid" id="avzGrid"></div></div>
   <div id="calEmpty" class="empty" style="display:none"><span class="et">Nessun calendario collegato</span>Gli artisti con Google Calendar collegato appariranno qui.</div>
 </div>
+</div><!-- /pageContent -->
 
 <script src="/assets/api.js"></script>
 <script>
@@ -97,7 +99,9 @@ function draw(){
 }
 
 async function init(){
-  await renderNav();
+  const me = await getMe(true);
+  if (me.user && ['promoter','management'].includes(me.user.role)) mountPromoterShell(me.user,'calendario');
+  else { await renderNav(); document.getElementById('pageContent').style.display=''; }
   let data=[];
   try{ data=(await api('calendars-busy.php')).artists||[]; }catch(e){ toast('Errore caricamento calendario',true); }
   ART=data.map(a=>({...a, _busy:new Set(a.busy||[])}));

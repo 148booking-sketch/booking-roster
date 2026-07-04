@@ -9,6 +9,7 @@
 <style>
 /* layout 11a: elenco a sinistra, mappa a destra */
 .map-wrap{display:flex;height:calc(100vh - 81px)}
+.pshell .map-wrap{height:100vh}
 .map-side{width:360px;flex:none;border-right:1px solid var(--line2);display:flex;flex-direction:column;background:#fff}
 .ms-head{padding:16px 20px;border-bottom:1px solid var(--line2)}
 .ms-head .t{font:700 16px var(--f-display)}
@@ -46,6 +47,7 @@
 <body>
 <nav class="nav" id="nav"></nav>
 
+<div id="pageContent" style="display:none">
 <div class="map-wrap">
   <aside class="map-side">
     <div class="ms-head">
@@ -64,6 +66,7 @@
   </aside>
   <div id="map"></div>
 </div>
+</div><!-- /pageContent -->
 
 <script src="/assets/api.js"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -78,7 +81,9 @@ function cachet(a){ const v=a.cachet_min??a.cachet_max;
   if(v==null) return 'Trattativa riservata'; if(v===0) return 'Senza impegno'; return 'da '+eur(v); }
 
 async function init(){
-  await renderNav();
+  const me = await getMe(true);
+  if (me.user && ['promoter','management'].includes(me.user.role)) mountPromoterShell(me.user,'mappa');
+  else { await renderNav(); document.getElementById('pageContent').style.display=''; }
   try{
     const r=await api('artists-map.php');
     DATA=r.artists||[]; LOCKED=!!r.locked;

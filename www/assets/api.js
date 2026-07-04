@@ -536,6 +536,7 @@ function mountPromoterShell(u, active) {
       <nav class="ps-nav">
         ${item('cerca', '/', 'search', 'Cerca artisti')}
         ${item('mappa', '/mappa.html', 'pin', 'Mappa')}
+        ${item('calendario', '/calendario.html', 'calendar', 'Calendario')}
         ${item('preferiti', '/preferiti.html', 'heart', 'Preferiti', 'psFav')}
         ${item('richieste', '/richieste.html', 'inbox', 'Le mie richieste', 'psReq')}
         ${item('account', '/account.html', 'bell', 'Account & notifiche')}

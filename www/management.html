@@ -48,7 +48,7 @@
 <body>
 <nav class="nav" id="nav"></nav>
 
-<main class="container narrow section">
+<div id="pageContent" style="display:none"><div class="pmain-pad" id="pagePad">
 
   <!-- non loggato / ruolo errato -->
   <div id="gate" style="display:none;max-width:460px;margin:0 auto;text-align:center">
@@ -70,7 +70,7 @@
     <div id="rosterView">
       <div class="sec-toolbar">
         <div>
-          <h1 class="title" style="margin:0" data-ic="agency" data-ic-size="22">Il tuo roster</h1>
+          <h1 class="title" style="margin:0">Il tuo roster</h1>
           <p class="sub" style="margin:4px 0 0" id="rosterCount">Gli artisti che gestisci.</p>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -79,7 +79,7 @@
         </div>
       </div>
       <div style="display:flex;align-items:center;gap:10px;margin:0 0 16px;flex-wrap:wrap">
-        <div class="fl-search" style="margin:0;flex:1;min-width:200px;max-width:320px"><span data-ic="search" data-ic-size="15" data-ic-stroke="1.9" style="color:var(--muted)"></span><input id="rq_search" placeholder="Cerca nel tuo roster…" oninput="paintRoster()"></div>
+        <div class="fl-search" style="margin:0;flex:1;min-width:200px;max-width:320px"><input id="rq_search" placeholder="Cerca nel tuo roster…" oninput="paintRoster()"></div>
         <select id="rq_state" onchange="paintRoster()" style="width:auto">
           <option value="">Stato: Tutti</option>
           <option value="online">Online</option>
@@ -153,21 +153,27 @@
       </div>
     </form>
   </div>
-</main>
+</div></div><!-- /pageContent -->
 
 <script src="/assets/api.js"></script>
 <script src="/assets/artist-form.js"></script>
 <script>
 let editId = null, ME = null, MEPROF = null;
 
+function showWithHeader(){
+  // gate / pending: layout classico con header e contenuto centrato
+  document.getElementById('pagePad').classList.remove('pmain-pad');
+  document.getElementById('pagePad').classList.add('container','narrow','section');
+  document.getElementById('pageContent').style.display='';
+}
 (async function init(){
   const me = await getMe(true);
-  if (!me.user){ document.getElementById('gate').style.display = ''; renderNav(); return; }
+  if (!me.user){ renderNav(); showWithHeader(); document.getElementById('gate').style.display = ''; return; }
   if (me.user.role !== 'management'){ location.href = '/'; return; }
   ME = me.user; MEPROF = me.profile || {};
-  await renderNav();
+  if (me.user.status !== 'active'){ await renderNav(); showWithHeader(); injectIcons(); document.getElementById('pending').style.display = ''; return; }
+  mountPromoterShell(me.user, 'roster');
   injectIcons();
-  if (me.user.status !== 'active'){ document.getElementById('pending').style.display = ''; return; }
   document.getElementById('panel').style.display = '';
   await loadGenres();
   artistFormMount('mfMount', 'm_');
