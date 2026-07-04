@@ -137,6 +137,10 @@ $viewer = current_user();
 $locked = !viewer_can_see_prices($viewer);
 $pendingVerification = (bool) ($viewer && in_array($viewer['role'], ['promoter', 'management'], true) && !promoter_is_verified((int) $viewer['id']));
 
+// Preferiti: se il viewer può averne, insieme degli artist_user_id salvati (per il cuore nelle card).
+$canFavorite = viewer_can_favorite($viewer);
+$favIds      = $canFavorite ? array_flip(favorite_artist_ids($viewer)) : [];
+
 // Cachet massimo di tutto il roster (per il max dello slider prezzo). Solo ai loggati.
 $rosterMaxCachet = $locked ? 0 : (int) db()->query(
   "SELECT MAX(GREATEST(COALESCE(cachet_min,0), COALESCE(cachet_max,0)))
@@ -153,6 +157,7 @@ foreach ($rows as &$r) {
                      && ($r['promo_until'] === null || $r['promo_until'] >= date('Y-m-d')));
   if ($locked) { $r['cachet_min'] = null; $r['cachet_max'] = null; $r['cachet_promo'] = null; $r['promo_until'] = null; }
   $r['stats'] = $r['stats'] ? (json_decode($r['stats'], true) ?: []) : [];
+  $r['is_favorite'] = isset($favIds[(int)$r['user_id']]);
 }
 unset($r);
 
@@ -165,6 +170,7 @@ echo json_encode([
   'page'    => $page,
   'locked'  => $locked,
   'pending_verification' => $pendingVerification,
+  'can_favorite' => $canFavorite,
   'roster_max_cachet' => $rosterMaxCachet,
   'origin'  => $hasOrigin ? ['lat' => $lat, 'lng' => $lng] : null,
 ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
@@ -185,6 +191,10 @@ if (function_exists('fastcgi_finish_request')) {
     if (!$last || strtotime($last) < time() - 86400) {
       meta_set('stats_tick_at', gmdate('Y-m-d H:i:s'));
       refresh_stale_stats(5, 7);
+      // Promemoria evento 3 giorni prima: guidato dal traffico come le stat, così parte
+      // anche senza cron configurato (deduplicato in booking_reminders).
+      require_once __DIR__ . '/_mail.php';
+      send_event_reminders();
     }
   } catch (Throwable $e) { /* silenzioso */ }
 }

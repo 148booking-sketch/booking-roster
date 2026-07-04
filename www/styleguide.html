@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Libro dello stile · Booking Roster</title>
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="/assets/style.css">
+<style>
+.sg-main{max-width:1080px;margin:0 auto;padding:32px 24px 90px}
+.sg-h1{font-family:var(--f-display);font-size:30px;font-weight:700;letter-spacing:-.5px;margin:0 0 6px}
+.sg-lead{color:var(--muted);font-size:15px;margin:0 0 10px;max-width:720px}
+.sg-sec{margin-top:44px}
+.sg-sec > h2{font-family:var(--f-display);font-size:20px;font-weight:700;margin:0 0 4px}
+.sg-sec > p.desc{color:var(--muted);font-size:14px;margin:0 0 18px;max-width:720px}
+.sg-panel{border:1px solid var(--line);border-radius:16px;background:#fff;box-shadow:var(--shadow);padding:24px}
+.sg-row{display:flex;flex-wrap:wrap;gap:14px;align-items:center}
+.sw-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.sw{border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.sw .chip{height:66px}
+.sw .meta{padding:8px 11px;font-size:12px}
+.sw .meta b{display:block;font-size:13px}
+.sw .meta span{color:var(--muted);font-family:ui-monospace,Menlo,monospace}
+.icon-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:10px}
+.icon-cell{display:flex;flex-direction:column;align-items:center;gap:7px;border:1px solid var(--line2);border-radius:12px;padding:14px 6px;color:var(--txt)}
+.icon-cell span{font-size:11px;color:var(--muted);font-family:ui-monospace,Menlo,monospace}
+.type-row{display:flex;align-items:baseline;gap:16px;padding:10px 0;border-top:1px solid var(--line2)}
+.type-row:first-child{border-top:0}
+.type-row .lab{width:150px;flex:none;color:var(--muted);font-size:12px;font-family:ui-monospace,Menlo,monospace}
+.artist-card{width:230px}
+.artist-card .ph{aspect-ratio:1/1;border-radius:14px;overflow:hidden;position:relative;display:flex;align-items:flex-end;padding:11px;background:linear-gradient(135deg,#7c3aed,#d52454)}
+.artist-card .fav{position:absolute;top:11px;right:11px;color:#fff;filter:drop-shadow(0 1px 3px rgba(0,0,0,.5))}
+.artist-card .info{padding:10px 2px 0}
+.artist-card .nm{font-weight:600;font-size:15px}
+.artist-card .mt{font-size:13px;color:var(--muted);margin-top:2px}
+.artist-card .pr{font-size:14px;margin-top:5px}
+.spec{font-size:13.5px;line-height:1.7;color:#333}
+.spec code{background:var(--panel2);border-radius:5px;padding:1px 6px;font-size:12.5px}
+.shell-demo{display:flex;min-height:280px;border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.shell-demo aside{width:190px;flex:none;background:#17171b;padding:16px 0;display:flex;flex-direction:column}
+.shell-demo .brand{padding:0 16px 16px;display:flex;align-items:center;gap:8px;color:#fff;font-family:var(--f-display);font-weight:700;font-size:14px}
+.shell-demo .brand .mk{width:26px;height:26px;border-radius:8px;background:var(--brand);display:flex;align-items:center;justify-content:center;color:#fff}
+.shell-demo nav{padding:0 8px;display:flex;flex-direction:column;gap:2px}
+.shell-demo a.si{display:flex;align-items:center;gap:11px;padding:9px 12px;border-radius:9px;color:#9a9aa2;font-weight:500;font-size:13px}
+.shell-demo a.si.on{background:var(--brand);color:#fff;font-weight:600}
+.shell-demo .body{flex:1;background:#fff;padding:20px}
+</style>
+</head>
+<body>
+<nav class="nav" id="nav"></nav>
+
+<main class="sg-main">
+  <h1 class="sg-h1">Libro dello stile</h1>
+  <p class="sg-lead">Design system ufficiale di Booking Roster. Palette, tipografia, icone e componenti condivisi da tutte le pagine. Base per ogni nuova schermata — se un elemento non è qui, si aggiunge qui prima di usarlo.</p>
+  <p class="sg-lead" style="font-size:13px">Brand <b>#d52454</b> · <b>Space Grotesk</b> (display) + <b>Inter</b> (testo) · icone SVG lineari · superfici bianche, sidebar admin scura.</p>
+
+  <!-- COLORI -->
+  <section class="sg-sec">
+    <h2>Colori</h2>
+    <p class="desc">Token in <code>:root</code> di <code>style.css</code>. Il brand si usa per azioni primarie, stati attivi e accenti; il resto è neutro.</p>
+    <div class="sg-panel"><div id="swatches" class="sw-grid"></div></div>
+  </section>
+
+  <!-- TIPOGRAFIA -->
+  <section class="sg-sec">
+    <h2>Tipografia</h2>
+    <p class="desc"><b>Space Grotesk</b> per titoli e numeri (display), <b>Inter</b> per tutto il resto.</p>
+    <div class="sg-panel">
+      <div class="type-row"><span class="lab">display 30/700</span><span style="font-family:var(--f-display);font-size:30px;font-weight:700;letter-spacing:-.5px">Trova artisti per il tuo evento</span></div>
+      <div class="type-row"><span class="lab">display 20/700</span><span style="font-family:var(--f-display);font-size:20px;font-weight:700">Titolo di sezione</span></div>
+      <div class="type-row"><span class="lab">body 15/400</span><span style="font-size:15px">Testo corrente dell'interfaccia, in Inter.</span></div>
+      <div class="type-row"><span class="lab">label 13/600</span><span style="font-size:13px;font-weight:600">Etichetta campo</span></div>
+      <div class="type-row"><span class="lab">section-label</span><span class="section-label" style="margin:0">Intestazione sezione</span></div>
+      <div class="type-row"><span class="lab">muted 13</span><span style="font-size:13px;color:var(--muted)">Testo secondario / meta</span></div>
+    </div>
+  </section>
+
+  <!-- ICONE -->
+  <section class="sg-sec">
+    <h2>Icone</h2>
+    <p class="desc">Set SVG lineare (stroke <code>currentColor</code>, viewBox 24). In JS: <code>icon('nome', size, stroke)</code>. Sostituiscono le emoji nelle UI.</p>
+    <div class="sg-panel"><div id="iconGrid" class="icon-grid"></div></div>
+  </section>
+
+  <!-- BOTTONI -->
+  <section class="sg-sec">
+    <h2>Bottoni</h2>
+    <p class="desc">Classe <code>.btn</code> + variante. <code>.sm</code> per la taglia piccola. Icona opzionale a sinistra via <code>icon()</code>.</p>
+    <div class="sg-panel sg-row">
+      <button class="btn primary" id="b1">Azione primaria</button>
+      <button class="btn dark">Scura</button>
+      <button class="btn ghost">Ghost</button>
+      <button class="btn outline">Outline</button>
+      <button class="btn primary sm">Piccola</button>
+      <button class="btn ghost sm">Piccola ghost</button>
+    </div>
+  </section>
+
+  <!-- STATI / BADGE -->
+  <section class="sg-sec">
+    <h2>Stati e badge</h2>
+    <p class="desc">Pill di stato <code>.status</code> (<code>.ok/.warn/.off/.promo</code>), verificato <code>.verif</code>, badge generico <code>.badge</code>.</p>
+    <div class="sg-panel sg-row">
+      <span class="status ok"><span class="dot"></span>Online</span>
+      <span class="status warn"><span class="dot"></span>In attesa</span>
+      <span class="status off"><span class="dot"></span>Offline</span>
+      <span class="status promo"><span class="dot"></span>Promo</span>
+      <span class="verif"><span class="tick">✓</span>Verificato</span>
+      <span class="badge">Badge</span>
+    </div>
+  </section>
+
+  <!-- CHIP + TOGGLE -->
+  <section class="sg-sec">
+    <h2>Chip e interruttori</h2>
+    <p class="desc">Chip generi (selezionato = brand, non selezionato = grigio). Interruttore <code>.switch</code> per le opzioni on/off.</p>
+    <div class="sg-panel sg-row">
+      <span class="chip" style="background:var(--brand);color:#fff;border-color:var(--brand)">Pop</span>
+      <span class="chip" style="background:#f2f2f2;color:#444">Indie</span>
+      <span class="chip" style="border:1px dashed #ccc;color:var(--muted)">+ aggiungi</span>
+      <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
+      <label class="switch"><input type="checkbox"><span class="slider"></span></label>
+    </div>
+  </section>
+
+  <!-- FORM -->
+  <section class="sg-sec">
+    <h2>Campi form</h2>
+    <p class="desc">Blocco <code>.field</code> con <code>&lt;label&gt;</code> + input. Bordo <code>--line</code>, radius 10.</p>
+    <div class="sg-panel" style="max-width:560px">
+      <div class="field"><label>Nome d'arte</label><input placeholder="Es. Marta Diaz"></div>
+      <div class="field" style="margin-bottom:0"><label>Città</label><input placeholder="Es. Milano"></div>
+    </div>
+  </section>
+
+  <!-- CARD ARTISTA -->
+  <section class="sg-sec">
+    <h2>Card artista</h2>
+    <p class="desc">Immagine quadrata (foto o gradiente), badge verificato in alto a sinistra, cuore preferito in alto a destra, nome · tipo show · città e cachet sotto. Senza bordo.</p>
+    <div class="sg-panel sg-row" style="gap:24px">
+      <div class="artist-card">
+        <div class="ph"><span class="verif" style="position:absolute;top:11px;left:11px"><span class="tick">✓</span>Verificato</span><span class="fav" id="favIco"></span></div>
+        <div class="info"><div class="nm">Marta Diaz</div><div class="mt">Live con DJ · Milano</div><div class="pr"><b>da €800</b> <span style="color:var(--muted)">a serata</span></div></div>
+      </div>
+      <div class="artist-card">
+        <div class="ph" style="background:linear-gradient(135deg,#059669,#0d9488)"><span class="fav" id="favIco2"></span></div>
+        <div class="info"><div class="nm">The Wolves</div><div class="mt">Live Band · Bologna</div><div class="pr"><b>Trattativa</b> <span style="color:var(--muted)">riservata</span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HEADER NAV -->
+  <section class="sg-sec">
+    <h2>Header / navigazione</h2>
+    <p class="desc">In alto in questa pagina (live). Logo, link testuali con underline attivo, campana notifiche, menu utente con avatar a iniziali e tendina (voci di ruolo + Account + Esci). I link cambiano per ruolo: pubblico, artista, promoter/agenzia, admin.</p>
+    <div class="sg-panel spec">
+      <b>Pubblico:</b> Cerca artisti · Mappa · Calendario — a destra Accedi + Registrati.<br>
+      <b>Promoter / Agenzia:</b> Cerca · Mappa · Calendario · Preferiti · Le mie richieste — campana + avatar (Roster* · Preferiti · Account · Esci). <span style="color:var(--muted)">*solo agenzia</span><br>
+      <b>Artista:</b> Il mio profilo · Le mie richieste — avatar.<br>
+      <b>Admin:</b> Cerca · Admin — campana + avatar (Pannello admin · Account · Esci).
+    </div>
+  </section>
+
+  <!-- SHELL ADMIN -->
+  <section class="sg-sec">
+    <h2>Shell admin</h2>
+    <p class="desc">Sidebar scura <code>#17171b</code> (216px) con logo, voci a icona (attiva = brand), contatori richieste e card utente in basso; contenuto bianco largo con breadcrumb, titolo, azioni e barra di salvataggio sticky.</p>
+    <div class="sg-panel">
+      <div class="shell-demo">
+        <aside>
+          <div class="brand"><span class="mk" id="shBrand"></span>Roster<span style="color:#6b6b74;font-weight:500"> admin</span></div>
+          <nav id="shellNav"></nav>
+        </aside>
+        <div class="body">
+          <div class="section-label" style="margin-top:0">Contenuto</div>
+          <p class="spec" style="margin:0">Area di lavoro larga. Ogni voce apre una vista dedicata (Panoramica, Artisti, Promoter, Agenzie, Richieste, Admin, Impostazioni) invece di tab affiancate.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script src="/assets/api.js"></script>
+<script>
+renderNav();
+
+// Colori
+const SW=[['--brand','Brand','#d52454'],['--brand2','Brand scuro','#b81e47'],['--txt','Testo','#222222'],['--muted','Muted','#717171'],
+  ['--line','Bordo','#dddddd'],['--line2','Bordo tenue','#ebebeb'],['--panel2','Superficie 2','#f7f7f7'],['#17171b','Sidebar admin','#17171b'],
+  ['--ok','Successo','#008a05'],['#0a7d38','Online','#0a7d38'],['#a86a00','Attesa','#a86a00'],['#1d9bf0','Verificato','#1d9bf0']];
+document.getElementById('swatches').innerHTML = SW.map(([v,name,hex])=>`
+  <div class="sw"><div class="chip" style="background:${v.startsWith('--')?`var(${v})`:v}"></div>
+    <div class="meta"><b>${name}</b><span>${hex}</span></div></div>`).join('');
+
+// Icone (tutte quelle registrate in ICONS)
+document.getElementById('iconGrid').innerHTML = Object.keys(ICONS).sort().map(n=>`
+  <div class="icon-cell">${icon(n,24,1.7)}<span>${n}</span></div>`).join('');
+
+// Bottone con icona d'esempio
+document.getElementById('b1').innerHTML = icon('check',16,2.2)+' Salva modifiche';
+
+// Cuori sulle card
+favIco.innerHTML = icon('heart',20,1.8);
+favIco2.innerHTML = icon('heart',20,1.8);
+
+// Shell admin demo
+shBrand.innerHTML = icon('mic',16,1.9);
+const SHELL=[['grid','Panoramica',0],['mic','Artisti',1],['speaker','Promoter',0],['agency','Agenzie',0],['inbox','Richieste',0],['shield','Admin',0],['sliders','Impostazioni',0]];
+document.getElementById('shellNav').innerHTML = SHELL.map(([ic,label,on])=>`<a class="si${on?' on':''}">${icon(ic,17,1.75)}${label}</a>`).join('');
+</script>
+</body>
+</html>

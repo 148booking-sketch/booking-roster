@@ -22,6 +22,10 @@ if (!in_array($freq, ['daily', 'weekly', 'monthly'], true)) { http_response_code
 
 @set_time_limit(0);
 
+// Promemoria evento (3 giorni prima) per le richieste accettate: deduplicati in
+// booking_reminders, quindi eseguirli a ogni giro (daily/weekly/monthly) è sicuro.
+$reminders = send_event_reminders();
+
 $freqLabels = ['daily' => 'giornaliero', 'weekly' => 'settimanale', 'monthly' => 'mensile'];
 $fallbackDays = ['daily' => 1, 'weekly' => 7, 'monthly' => 30];
 

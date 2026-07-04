@@ -21,13 +21,18 @@ $redir = function (string $path) use ($app) { header('Location: ' . $app . $path
 
 if ($token === '') $redir('/accedi.html?verify=fail');
 
-$st = db()->prepare('SELECT id, role, email_verified FROM users WHERE verify_token = ?');
+$st = db()->prepare('SELECT id, role, email, display_name, email_verified FROM users WHERE verify_token = ?');
 $st->execute([$token]);
 $u = $st->fetch();
 if (!$u) $redir('/accedi.html?verify=fail');
 
 if ((int)$u['email_verified'] !== 1) {
   db()->prepare('UPDATE users SET email_verified = 1 WHERE id = ?')->execute([$u['id']]);
+  // Prima verifica di un promoter/agenzia → email di benvenuto (best-effort).
+  if (in_array($u['role'], ['promoter', 'management'], true)) {
+    require_once __DIR__ . '/_mail.php';
+    notify_promoter_welcome($u['email'], $u['display_name'] ?? '');
+  }
 }
 login_user((int)$u['id']);
 

@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Preferiti · Booking Roster</title>
+<link rel="stylesheet" href="/assets/style.css">
+<style>
+.pf-head{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;flex-wrap:wrap;margin-bottom:6px}
+#list{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:14px;align-items:start;margin-top:18px}
+@media(max-width:520px){#list{grid-template-columns:1fr}}
+.pf-card{border:1px solid var(--line);border-radius:16px;background:#fff;box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column}
+.pf-top{display:flex;gap:14px;padding:16px 18px}
+.pf-photo{width:64px;height:64px;border-radius:14px;overflow:hidden;flex:none;background:var(--panel2);display:flex;align-items:center;justify-content:center;font-size:26px}
+.pf-photo img{width:100%;height:100%;object-fit:cover}
+.pf-id{min-width:0;flex:1}
+.pf-name{font-weight:700;font-size:18px;font-family:var(--f-display);line-height:1.15}
+.pf-meta{font-size:13px;color:var(--muted);margin-top:3px}
+.pf-body{padding:0 18px 16px;display:flex;flex-direction:column;gap:10px}
+.pf-row{display:flex;justify-content:space-between;gap:10px;align-items:baseline;border-top:1px solid var(--line2);padding-top:10px;font-size:14px}
+.pf-row .l{color:var(--muted)}
+.pf-row .v{font-weight:700;text-align:right}
+.pf-price .v{font-size:16px}
+.promo-old{color:var(--muted);font-weight:400;text-decoration:line-through;margin-right:6px}
+.promo-new{color:#c0395e}
+.pf-badge{display:inline-block;font-size:11px;font-weight:800;padding:3px 9px;border-radius:20px;background:#c0395e18;color:#c0395e;margin-left:6px}
+.pf-free{color:#0a7d38}
+.pf-busy{color:#c0395e}
+.pf-actions{display:flex;gap:10px;padding:14px 18px;border-top:1px solid var(--line2);margin-top:auto}
+.pf-actions .btn{flex:1;text-align:center}
+.pf-next{display:flex;gap:6px;flex-wrap:wrap;margin-top:2px}
+.pf-chip{font-size:12px;font-weight:600;background:var(--panel2);border:1px solid var(--line2);border-radius:8px;padding:3px 8px}
+</style>
+</head>
+<body>
+<nav class="nav" id="nav"></nav>
+
+<main class="container section">
+  <div class="pf-head">
+    <div>
+      <h1 class="title" style="margin-bottom:2px">Preferiti</h1>
+      <p class="sub" id="pageSub">Gli artisti che segui: disponibilità e prezzo sempre sott'occhio.</p>
+    </div>
+    <a class="btn ghost" href="/preferiti-calendario.html" data-ic="calendar" data-ic-size="15">Calendario preferiti</a>
+  </div>
+  <div id="lockedNote" class="hint" style="display:none;margin-top:8px"></div>
+  <div id="list"></div>
+  <div id="empty" class="empty" style="display:none">
+    Non hai ancora preferiti.<br>
+    <a class="btn ghost sm" style="margin-top:14px" href="/">Sfoglia gli artisti</a> e tocca il cuore per salvarli qui.
+  </div>
+</main>
+
+<script src="/assets/api.js"></script>
+<script>
+const MESI=['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','nov','dic'];
+let LOCKED=false, PENDING=false;
+
+function todayISO(){ const d=new Date(); d.setHours(0,0,0,0);
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function fmtDay(iso){ const d=new Date(iso+'T00:00:00'); if(isNaN(d)) return iso;
+  return d.getDate()+' '+MESI[d.getMonth()]; }
+/* prima data libera nei prossimi ~180 giorni non presente in busy */
+function nextFree(busy){
+  const set=new Set(busy||[]); const d=new Date(); d.setHours(0,0,0,0);
+  for(let i=0;i<180;i++){ const iso=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    if(!set.has(iso)) return iso; d.setDate(d.getDate()+1); }
+  return null;
+}
+
+async function init(){
+  const me = await getMe(true);
+  if(!me.user){ location.href='/accedi.html'; return; }
+  if(!['promoter','management','admin'].includes(me.user.role)){ location.href='/'; return; }
+  await renderNav();
+  injectIcons();
+  load();
+}
+async function load(){
+  let r;
+  try{ r = await api('favorites-list.php'); }
+  catch(err){ toast(errMsg(err),true); return; }
+  LOCKED=!!r.locked; PENDING=!!r.pending_verification;
+  const note=document.getElementById('lockedNote');
+  if(LOCKED){ note.style.display='block';
+    note.innerHTML = PENDING
+      ? '🔒 Il tuo account è in attesa di verifica: i cachet saranno visibili a breve.'
+      : '🔒 I cachet sono visibili solo ai promoter verificati.'; }
+  else note.style.display='none';
+  const L=r.artists||[];
+  document.getElementById('empty').style.display=L.length?'none':'block';
+  document.getElementById('list').innerHTML=L.map(card).join('');
+}
+
+function priceRow(a){
+  if(LOCKED) return `<span class="v">🔒 ${PENDING?'In verifica':'Riservato'}</span>`;
+  const base=a.cachet_min ?? a.cachet_max;
+  if(base==null) return `<span class="v">Trattativa riservata</span>`;
+  if(base===0) return `<span class="v">Senza impegno</span>`;
+  if(a.has_promo && a.cachet_promo!=null)
+    return `<span class="v"><span class="promo-old">${eur(base)}</span><span class="promo-new">${eur(a.cachet_promo)}</span></span>`;
+  return `<span class="v">${eur(base)} <span style="font-weight:400;color:var(--muted)">a serata</span></span>`;
+}
+function availRow(a){
+  if(!a.has_calendar) return `<span class="v" style="font-weight:400;color:var(--muted)">Calendario non impostato</span>`;
+  const nf=nextFree(a.busy);
+  const next=(a.busy||[]).slice(0,3);
+  const chips=next.length?`<div class="pf-next">${next.map(d=>`<span class="pf-chip pf-busy">${fmtDay(d)}</span>`).join('')}</div>`:'';
+  return `<span class="v pf-free">${nf?('Libero dal '+fmtDay(nf)):'Nessuna data libera'}</span>${chips}`;
+}
+function card(a){
+  const loc=[a.comune, a.provincia?('('+a.provincia+')'):''].filter(Boolean).join(' ');
+  const promoBadge=a.has_promo?'<span class="pf-badge">PROMO</span>':'';
+  return `<div class="pf-card" id="fav-${a.user_id}">
+    <div class="pf-top">
+      <div class="pf-photo">${a.photo_url?`<img src="${esc(a.photo_url)}" referrerpolicy="no-referrer" alt="">`:'🎵'}</div>
+      <div class="pf-id">
+        <div class="pf-name">${esc(a.stage_name||'Artista')}${a.verified?'<span class="vchk" title="Verificato">✓</span>':''}${promoBadge}</div>
+        <div class="pf-meta">${esc(showLabel(a.formazione))}${loc?' · '+esc(loc):''}</div>
+      </div>
+    </div>
+    <div class="pf-body">
+      <div class="pf-row pf-price"><span class="l">${icon('euro',13)} Cachet</span>${priceRow(a)}</div>
+      <div class="pf-row"><span class="l">${icon('calendar',13)} Disponibilità</span><div style="text-align:right">${availRow(a)}</div></div>
+    </div>
+    <div class="pf-actions">
+      <a class="btn ghost sm" href="/${esc(a.slug||'')}">Vedi profilo</a>
+      <button class="btn outline sm" onclick="removeFav(${a.user_id})">Rimuovi</button>
+    </div>
+  </div>`;
+}
+
+async function removeFav(id){
+  try{
+    await api('favorites-toggle.php',{method:'POST',body:{artist_user_id:id,on:false}});
+    const el=document.getElementById('fav-'+id); if(el) el.remove();
+    if(!document.querySelector('.pf-card')) document.getElementById('empty').style.display='block';
+    toast('Rimosso dai preferiti');
+  }catch(err){ toast(errMsg(err),true); }
+}
+init();
+</script>
+</body>
+</html>

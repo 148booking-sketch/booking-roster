@@ -16,7 +16,7 @@
   <div class="grid cols-2" style="align-items:start">
   <!-- DATI ACCOUNT -->
   <form class="panel" onsubmit="return saveAccount(event)">
-    <h3 style="margin:0 0 12px">👤 Dati account</h3>
+    <h3 style="margin:0 0 12px" data-ic="user">Dati account</h3>
     <div class="field"><label id="ac_nameLbl">Nome visualizzato</label><input id="ac_name" required></div>
     <div class="field"><label>Email</label><input id="ac_email" type="email" required>
       <div class="hint" id="emailHint">È l'indirizzo con cui accedi.</div></div>
@@ -25,7 +25,7 @@
 
   <!-- PASSWORD -->
   <form class="panel" onsubmit="return changePass(event)">
-    <h3 style="margin:0 0 12px">🔒 Password</h3>
+    <h3 style="margin:0 0 12px" data-ic="lock">Password</h3>
     <div class="field"><label>Nuova password (min 8)</label><input id="pw_new" type="password" minlength="8" required></div>
     <div class="field"><label>Ripeti nuova password</label><input id="pw_new2" type="password" minlength="8" required></div>
     <button class="btn primary">Cambia password</button>
@@ -33,9 +33,19 @@
   </form>
   </div>
 
+  <!-- PREFERITI (promoter/management) -->
+  <div class="panel" id="favBox" style="display:none;margin-top:18px">
+    <h3 style="margin:0 0 6px" data-ic="heart">Preferiti</h3>
+    <p class="hint" style="margin-top:0">Gli artisti che segui, con disponibilità e prezzo scontato sempre sott'occhio.</p>
+    <div class="row" style="gap:10px;margin-top:6px">
+      <a class="btn ghost" href="/preferiti.html" data-ic="heart" data-ic-size="15">I miei preferiti</a>
+      <a class="btn ghost" href="/preferiti-calendario.html" data-ic="calendar" data-ic-size="15">Calendario preferiti</a>
+    </div>
+  </div>
+
   <!-- DATI PROMOTER -->
   <form class="panel" id="promoterBox" style="display:none;margin-top:18px" onsubmit="return savePromoterProfile(event)">
-    <h3 style="margin:0 0 12px">📣 Dati locale / organizzazione</h3>
+    <h3 style="margin:0 0 12px" data-ic="speaker">Dati locale / organizzazione</h3>
     <div class="row">
       <div class="field" style="max-width:220px"><label>Tipo</label>
         <select id="pp_tipo">
@@ -56,7 +66,7 @@
 
   <!-- ALERT EMAIL (solo promoter) -->
   <form class="panel" id="emailPrefsBox" style="display:none;margin-top:18px" onsubmit="return saveEmailPrefs(event)">
-    <h3 style="margin:0 0 4px">📬 Alert email</h3>
+    <h3 style="margin:0 0 4px" data-ic="mail">Alert email</h3>
     <p class="hint" style="margin-top:0">Ricevi via email i nuovi artisti pubblicati, gli artisti in promo e le risposte alle tue richieste.</p>
     <div class="row" style="align-items:center">
       <div class="field" style="max-width:220px;margin-bottom:0"><label>Frequenza</label>
@@ -78,7 +88,7 @@
 
   <!-- ALTRE IMPOSTAZIONI -->
   <div class="panel" style="margin-top:18px">
-    <h3 style="margin:0 0 6px">⚙️ Altre impostazioni</h3>
+    <h3 style="margin:0 0 6px" data-ic="sliders">Altre impostazioni</h3>
     <div class="hint">Privacy, eliminazione account e altre opzioni arriveranno qui.</div>
   </div>
 </main>
@@ -91,9 +101,13 @@ let ME = null;
   if (!me.user){ location.href = '/accedi.html'; return; }
   if (me.user.role === 'artist'){ location.href = '/profilo.html'; return; }
   await renderNav();
+  injectIcons();
   ME = me.user;
   ac_name.value  = me.user.display_name || '';
   ac_email.value = me.user.email || '';
+  if (me.user.role === 'promoter' || me.user.role === 'management') {
+    document.getElementById('favBox').style.display = '';
+  }
   if (me.user.role === 'promoter') {
     document.getElementById('ac_nameLbl').textContent = 'Nome locale / festival / promoter';
     initPromoterProfile(me.profile || {});
@@ -145,7 +159,11 @@ async function saveAccount(e){ e.preventDefault();
   try {
     const r = await api('account-save.php',{method:'POST',body:{
       display_name: ac_name.value, email: ac_email.value }});
-    _me = null; toast('Dati account salvati ✓'); renderNav();
+    _me = null;
+    toast(r.email_changed
+      ? 'Email aggiornata: controlla la nuova casella e verifica per poter riaccedere.'
+      : 'Dati account salvati ✓');
+    renderNav();
   } catch(err){ toast(errMsg(err), true); }
   return false;
 }

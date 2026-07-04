@@ -45,12 +45,12 @@
     <div id="rosterView">
       <div class="sec-toolbar">
         <div>
-          <h1 class="title" style="margin:0">🎧 Il tuo roster</h1>
+          <h1 class="title" style="margin:0" data-ic="agency" data-ic-size="22">Il tuo roster</h1>
           <p class="sub" style="margin:4px 0 0">Gli artisti che gestisci. Vengono pubblicati subito, previa verifica del catalogo Apple Music.</p>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <button type="button" class="btn ghost" onclick="showProfile()">⚙️ Profilo agenzia</button>
-          <button type="button" class="btn primary" onclick="startNew()">➕ Aggiungi artista</button>
+          <button type="button" class="btn ghost" onclick="showProfile()" data-ic="sliders" data-ic-size="15">Profilo agenzia</button>
+          <button type="button" class="btn primary" onclick="startNew()" data-ic="plus" data-ic-size="15">Aggiungi artista</button>
         </div>
       </div>
       <div id="roster" class="roster"></div>
@@ -58,7 +58,7 @@
 
     <!-- PROFILO AGENZIA -->
     <form id="agencyForm" class="panel" style="display:none;max-width:560px" onsubmit="return saveAgency(event)">
-      <h3 style="margin:0 0 12px">⚙️ Profilo agenzia</h3>
+      <h3 style="margin:0 0 12px" data-ic="sliders">Profilo agenzia</h3>
       <div class="field"><label>Nome agenzia *</label><input id="ag_org" required></div>
       <div class="field"><label>Tipo</label>
         <select id="ag_tipo">
@@ -81,7 +81,7 @@
 
     <!-- STEP 1 (solo nuovo): idoneità Apple Music -->
     <form id="eligStep" class="panel" style="display:none;max-width:560px" onsubmit="return checkElig(event)">
-      <h3 style="margin:0 0 4px">🎧 Verifica idoneità</h3>
+      <h3 style="margin:0 0 4px" data-ic="music">Verifica idoneità</h3>
       <p class="hint" style="margin:0 0 14px">Per aggiungere un artista al roster serve un profilo Apple Music con almeno <b>4 brani pubblicati negli ultimi 2 anni</b> (anche in feat./collaborazione).</p>
       <div class="field"><label>Link profilo artista Apple Music</label>
         <input type="url" id="am_url" placeholder="https://music.apple.com/it/artist/..." required>
@@ -123,6 +123,7 @@ let editId = null, ME = null, MEPROF = null;
   if (me.user.role !== 'management'){ location.href = '/'; return; }
   ME = me.user; MEPROF = me.profile || {};
   await renderNav();
+  injectIcons();
   if (me.user.status !== 'active'){ document.getElementById('pending').style.display = ''; return; }
   document.getElementById('panel').style.display = '';
   await loadGenres();
@@ -167,7 +168,7 @@ function startNew(){
 /* ---- elenco roster ---- */
 function rostRow(a){
   const pub = a.published==1
-    ? '<span class="tg on">🟢 online</span>'
+    ? '<span class="tg on">online</span>'
     : '<span class="tg warn">⏳ in revisione</span>';
   const loc = [a.comune, a.provincia].filter(Boolean).join(' · ');
   const pic = a.photo_url ? `<img src="${esc(a.photo_url)}" alt="" referrerpolicy="no-referrer">` : '🎵';
@@ -178,8 +179,8 @@ function rostRow(a){
       <div class="rost-meta">${pub}${loc?` · ${esc(loc)}`:''}${a.slug?` · <a href="/${esc(a.slug)}" target="_blank" rel="noopener">vedi profilo</a>`:''}</div>
     </div>
     <div class="rost-acts">
-      <button type="button" class="btn ghost sm" onclick="editArtist(${a.id})">✏️ Modifica</button>
-      <button type="button" class="btn ghost sm" onclick="delArtist(${a.id},'${esc((a.stage_name||'').replace(/'/g,''))}')">🗑</button>
+      <button type="button" class="btn ghost sm" onclick="editArtist(${a.id})">${icon('edit',14)} Modifica</button>
+      <button type="button" class="btn ghost sm" onclick="delArtist(${a.id},'${esc((a.stage_name||'').replace(/'/g,''))}')">${icon('trash',14)}</button>
     </div>
   </div>`;
 }
@@ -189,7 +190,7 @@ async function loadRoster(){
     const list = r.artists || [];
     roster.innerHTML = list.length
       ? list.map(rostRow).join('')
-      : '<div class="empty" style="padding:26px;text-align:center;color:var(--muted)">Nessun artista ancora. Usa <b>➕ Aggiungi artista</b> per iniziare.</div>';
+      : '<div class="empty" style="padding:26px;text-align:center;color:var(--muted)">Nessun artista ancora. Usa <b>Aggiungi artista</b> per iniziare.</div>';
   } catch(err){ toast(errMsg(err), true); }
 }
 
@@ -227,7 +228,7 @@ async function editArtist(id){
     artistFormPopulate('m_', r.profile || {});
     setGenreVerified('m_', true);
     af_submit.textContent = 'Salva modifiche';
-    af_banner.style.display=''; af_banner.textContent = '✏️ Modifica di '+(r.profile?.stage_name||'artista');
+    af_banner.style.display=''; af_banner.textContent = 'Modifica di '+(r.profile?.stage_name||'artista');
     rosterView.style.display='none'; eligStep.style.display='none'; notElig.style.display='none';
     artForm.style.display=''; window.scrollTo({top:0,behavior:'smooth'});
   } catch(err){ toast(errMsg(err), true); }

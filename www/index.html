@@ -198,7 +198,7 @@
 <script>
 const state = { q:'', cachetMax:null, tratt:false, form:'', sort:'az', genres:new Set(), gps:null, km:'', noPrice:false, promo:false };
 let genres=[], lastResults=[];
-let map=null, markerLayer=null, LOCKED=false, PENDING_VERIFICATION=false;
+let map=null, markerLayer=null, LOCKED=false, PENDING_VERIFICATION=false, CAN_FAV=false;
 let lastArtistCount=null, promoterCount=null;
 
 // Legge i filtri passati via query string (es. dal popup "Cerca" nell'header, su qualsiasi pagina)
@@ -231,8 +231,8 @@ async function init(){
   renderSortIcons();
   genres=(await api('genres.php')).genres.filter(g=>g.cnt>0);
   document.getElementById('catbar').innerHTML =
-    `<div class="cat${state.genres.size?'':' on'}" data-slug="" onclick="pickCat(this)"><span class="ic">✨</span>Tutti</div>` +
-    genres.map(g=>`<div class="cat${state.genres.has(g.slug)?' on':''}" data-slug="${g.slug}" onclick="pickCat(this)"><span class="ic">${GENRE_ICONS[g.slug]||'🎵'}</span>${esc(g.name)}</div>`).join('');
+    `<div class="cat${state.genres.size?'':' on'}" data-slug="" onclick="pickCat(this)"><span class="ic">${icon('grid',24,1.6)}</span>Tutti</div>` +
+    genres.map(g=>`<div class="cat${state.genres.has(g.slug)?' on':''}" data-slug="${g.slug}" onclick="pickCat(this)"><span class="ic">${genreIcon(g.slug)}</span>${esc(g.name)}</div>`).join('');
 
   initMap();
   search();
@@ -244,10 +244,10 @@ async function init(){
 function renderSortIcons(){
   const el=document.getElementById('sortIcons'); if(!el) return;
   el.innerHTML = `
-    ${CAN_SORT_PRICE?`<button type="button" class="sicon${state.sort==='cachet'?' on':''}" onclick="toggleSortPrice()" title="Ordina per prezzo"><span class="sic-ic">💶</span>Prezzo${state.sort==='cachet'?(priceDir==='desc'?' ▼':' ▲'):''}</button>`:''}
-    <button type="button" class="sicon${state.sort==='distance'?' on':''}" onclick="toggleSortGps()" title="Vicino a me"><span class="sic-ic">📍</span>Vicino</button>
-    <button type="button" class="sicon${state.noPrice?' on':''}" onclick="toggleNoPriceIcon()" title="Artisti con cachet da concordare"><span class="sic-ic">🥪</span>Offerta</button>
-    <button type="button" class="sicon${state.promo?' on':''}" onclick="togglePromoIcon()" title="Artisti con promozione attiva"><span class="sic-ic">🏷️</span>Promo</button>`;
+    ${CAN_SORT_PRICE?`<button type="button" class="sicon${state.sort==='cachet'?' on':''}" onclick="toggleSortPrice()" title="Ordina per prezzo"><span class="sic-ic">${icon('euro',15,1.9)}</span>Prezzo${state.sort==='cachet'?(priceDir==='desc'?' ▼':' ▲'):''}</button>`:''}
+    <button type="button" class="sicon${state.sort==='distance'?' on':''}" onclick="toggleSortGps()" title="Vicino a me"><span class="sic-ic">${icon('pin',15,1.9)}</span>Vicino</button>
+    <button type="button" class="sicon${state.noPrice?' on':''}" onclick="toggleNoPriceIcon()" title="Artisti con cachet da concordare"><span class="sic-ic">${icon('wave',15,1.9)}</span>Offerta</button>
+    <button type="button" class="sicon${state.promo?' on':''}" onclick="togglePromoIcon()" title="Artisti con promozione attiva"><span class="sic-ic">${icon('zap',15,1.9)}</span>Promo</button>`;
 }
 function toggleSortPrice(){
   if(state.sort!=='cachet'){ state.sort='cachet'; priceDir='asc'; }
@@ -371,6 +371,7 @@ async function loadPage(reset){
     const r=await api('artists-search.php?'+buildParams(pg).toString());
     LOCKED=!!r.locked;
     PENDING_VERIFICATION=!!r.pending_verification;
+    CAN_FAV=!!r.can_favorite;
     const list=r.results||[];
     const res=document.getElementById('results');
     if(reset){ lastResults=list.slice(); res.innerHTML=list.map((a,i)=>cardHtml(a,i)).join(''); }
@@ -410,6 +411,7 @@ function cardHtml(a,i){
     <div class="card" onclick="goArtist('${esc(a.slug||'')}')">
       <div class="imgwrap">
         ${a.photo_url?`<img src="${esc(a.photo_url)}" alt="" referrerpolicy="no-referrer" loading="lazy">`:'<div class="ph-empty">🎵</div>'}
+        ${CAN_FAV?favBtnHtml(a.user_id,a.is_favorite,'card-fav'):''}
         ${topSocialStats(a.stats).length?`<div class="imgtop">${topSocialStats(a.stats).map(([plat,v])=>miniSocialIcon(plat,v)).join('')}</div>`:''}
         <div class="imgfoot">
           <span class="if-left">${esc(showLabel(a.formazione))}</span>

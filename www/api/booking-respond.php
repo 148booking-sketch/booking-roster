@@ -29,4 +29,12 @@ if (!$st->fetch()) fail('not_found', 404);
 
 db()->prepare('UPDATE booking_requests SET status=?, responded_at=NOW() WHERE id=?')
     ->execute([$newStatus, $id]);
+
+// Risposta dell'artista → email al promoter (best-effort).
+if (in_array($newStatus, ['accettata', 'rifiutata'], true)) {
+  require_once __DIR__ . '/_mail.php';
+  if (session_status() === PHP_SESSION_ACTIVE) session_write_close();
+  notify_booking_response($id, $newStatus);
+}
+
 ok(['status' => $newStatus]);

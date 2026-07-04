@@ -63,6 +63,16 @@ db()->prepare(
   'INSERT INTO booking_requests (promoter_user_id, artist_user_id, venue_id, event_date, message, proposed_fee)
    VALUES (?, ?, ?, ?, ?, ?)'
 )->execute([$u['id'], $artistId, $venueId, $date, $msg, $fee]);
+$reqId = (int)db()->lastInsertId();
 
-// TODO: notifica email all'artista
-ok(['request_id' => (int)db()->lastInsertId()]);
+// Email all'artista (best-effort, dopo il rilascio del lock di sessione).
+require_once __DIR__ . '/_mail.php';
+$pn = db()->prepare('SELECT org_name FROM promoter_profiles WHERE user_id = ?');
+$pn->execute([$u['id']]);
+$promoterName = $pn->fetchColumn() ?: $u['display_name'];
+if (session_status() === PHP_SESSION_ACTIVE) session_write_close();
+notify_new_booking_request($artistId, [
+  'promoter_name' => $promoterName, 'event_date' => $date, 'proposed_fee' => $fee, 'message' => $msg,
+]);
+
+ok(['request_id' => $reqId]);

@@ -9,6 +9,8 @@
 require_once __DIR__ . '/_http.php';
 require_once __DIR__ . '/_mail.php';
 require_once __DIR__ . '/_geo.php';
+require_once __DIR__ . '/_itunes.php';
+require_once __DIR__ . '/_calendar.php';
 only('POST');
 
 $in    = body();
@@ -38,10 +40,33 @@ if (in_array($role, ['promoter','management'], true)) {
   $emailConsent = !empty($in['email_alert_consent']);
   $emailFreq = $emailConsent ? 'weekly' : 'off';
 } else {
-  // Artista: telefono raccolto nello step 2 del wizard. Il link Apple Music verificato nello
-  // step 1 viene salvato tra i social del profilo, per non perdere il dato.
+  // Artista: nome d'arte, telefono e comune raccolti nel wizard; Apple Music e Google Calendar
+  // già verificati negli step 1-2, ma li RI-verifichiamo qui lato server (non ci si fida del
+  // client) per impedire di aggirare i requisiti. Il display_name resta il nome anagrafico
+  // (Nome Cognome, per SIAE/contratti); il nome d'arte va in artist_profiles.stage_name.
+  $stage      = trim($in['stage_name'] ?? '');
   $phone      = trim($in['phone'] ?? '');
+  $comune     = trim($in['comune'] ?? '');
+  $prov       = strtoupper(trim($in['provincia'] ?? '')) ?: null;
+  $calUrl     = trim($in['calendar_url'] ?? '');
   $appleMusic = trim($in['applemusic'] ?? '');
+
+  if ($stage === '')      fail('stage_name_required');
+  if ($phone === '')      fail('phone_required');
+  if ($comune === '')     fail('comune_required');
+  if ($appleMusic === '') fail('applemusic_required');
+
+  // Nome d'arte univoco nel roster (case-insensitive).
+  $dupSt = db()->prepare('SELECT 1 FROM artist_profiles WHERE LOWER(stage_name) = LOWER(?) LIMIT 1');
+  $dupSt->execute([$stage]);
+  if ($dupSt->fetchColumn()) fail('stage_name_taken', 409);
+
+  // Idoneità Apple Music/iTunes (≥4 brani/2 anni) — ri-verificata server-side.
+  $elig = itunes_eligibility($appleMusic);
+  if (!$elig['eligible']) fail('not_eligible', 422, ['track_count' => $elig['track_count'] ?? 0]);
+
+  // Google Calendar: iCal valido e raggiungibile.
+  if ($calUrl === '' || !calendar_is_valid($calUrl)) fail('calendar_invalid', 422);
 }
 
 $pdo = db();
@@ -65,11 +90,19 @@ try {
 
   if ($role === 'artist') {
     // published = 0: non visibile nella ricerca finché un admin non approva.
-    // stage_name vuoto: $name qui è il nome anagrafico (Nome Cognome), non il nome d'arte —
-    // lo sceglierà l'artista stesso completando il profilo.
+    // Il nome d'arte è scelto nel wizard (stage_name); $name resta il nome anagrafico.
     $socials = $appleMusic !== '' ? json_encode(['applemusic' => $appleMusic], JSON_UNESCAPED_UNICODE) : null;
-    $pdo->prepare('INSERT INTO artist_profiles (user_id, stage_name, phone, socials, published) VALUES (?, ?, ?, ?, 0)')
-        ->execute([$uid, '', ($phone ?: null), $socials]);
+    $slug = trim(preg_replace('/[^a-z0-9]+/', '-', mb_strtolower($stage)), '-');
+    $slug = ($slug !== '' ? $slug : 'artista') . '-' . $uid;
+    $lat = $lng = null;
+    if ($comune !== '') {
+      $geo = geocode_comune($comune, $prov);
+      if ($geo) { $lat = $geo['lat']; $lng = $geo['lng']; }
+    }
+    $pdo->prepare(
+      'INSERT INTO artist_profiles (user_id, stage_name, slug, phone, comune, provincia, lat, lng, calendar_url, socials, published)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)'
+    )->execute([$uid, $stage, $slug, ($phone ?: null), ($comune ?: null), $prov, $lat, $lng, ($calUrl ?: null), $socials]);
   } else {
     $lat = $lng = null;
     $geo = geocode_comune($comune, $prov);
@@ -86,6 +119,12 @@ try {
 } catch (Throwable $e) {
   $pdo->rollBack();
   fail('register_failed', 500);
+}
+
+// Calendario artista: precalcola le date occupate dal link appena validato (best-effort).
+if ($role === 'artist' && $calUrl !== '') {
+  if (session_status() === PHP_SESSION_ACTIVE) session_write_close();
+  try { refresh_artist_calendar($uid, $calUrl); } catch (Throwable $e) { /* ignora */ }
 }
 
 @send_verification_email($email, $name, $token);

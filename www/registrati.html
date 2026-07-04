@@ -10,7 +10,7 @@
 @media(max-width:720px){.role-grid{grid-template-columns:1fr}}
 .role-card{border:1px solid var(--line);border-radius:16px;padding:26px 22px;text-align:center;text-decoration:none;color:inherit;transition:.15s;display:block}
 .role-card:hover{border-color:var(--txt);box-shadow:var(--shadow)}
-.role-card .ic{font-size:36px;line-height:1;margin-bottom:10px}
+.role-card .ic{margin-bottom:12px;display:flex;justify-content:center;color:var(--brand)}
 .role-card h2{font-family:var(--f-display);font-size:20px;margin:0 0 6px}
 .role-card p{color:var(--muted);font-size:14px;margin:0}
 </style>
@@ -24,17 +24,17 @@
 
   <div class="role-grid">
     <a class="role-card" href="/registrati-artista.html">
-      <div class="ic">🎤</div>
+      <div class="ic" data-ic="mic" data-ic-size="34" data-ic-stroke="1.5"></div>
       <h2>Sono un artista</h2>
       <p>Pubblica il tuo profilo con cachet, disponibilità e generi e fatti trovare dai promoter.</p>
     </a>
     <a class="role-card" href="/registrati-promoter.html">
-      <div class="ic">📣</div>
+      <div class="ic" data-ic="speaker" data-ic-size="34" data-ic-stroke="1.5"></div>
       <h2>Sono un promoter</h2>
       <p>Locale, festival, associazione o agenzia: cerca l'artista giusto per il tuo evento.</p>
     </a>
     <a class="role-card" href="/registrati-management.html">
-      <div class="ic">🎧</div>
+      <div class="ic" data-ic="agency" data-ic-size="34" data-ic-stroke="1.5"></div>
       <h2>Agenzia</h2>
       <p>Sei un Booking o un Management e vuoi gestire tutto il tuo roster in modo automatizzato?</p>
     </a>
@@ -44,6 +44,6 @@
 </main>
 
 <script src="/assets/api.js"></script>
-<script>renderNav();</script>
+<script>renderNav().then(()=>injectIcons());</script>
 </body>
 </html>

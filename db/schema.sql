@@ -205,6 +205,49 @@ CREATE TABLE IF NOT EXISTS booking_requests (
   CONSTRAINT fk_req_venue    FOREIGN KEY (venue_id)         REFERENCES venues(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- ------------------------------------------------------------
+-- PREFERITI (promoter/management → artista)
+-- Un promoter o un'agenzia salva gli artisti che vuole monitorare
+-- (disponibilità, prezzo scontato). Pagina dedicata /preferiti.html +
+-- calendario aggregato /preferiti-calendario.html.
+-- ------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS favorites (
+  user_id         INT UNSIGNED NOT NULL,   -- promoter/management che ha salvato il preferito
+  artist_user_id  INT UNSIGNED NOT NULL,   -- artista salvato
+  created_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (user_id, artist_user_id),
+  KEY idx_fav_artist (artist_user_id),
+  CONSTRAINT fk_fav_user   FOREIGN KEY (user_id)        REFERENCES users(id) ON DELETE CASCADE,
+  CONSTRAINT fk_fav_artist FOREIGN KEY (artist_user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ------------------------------------------------------------
+-- MESSAGGI sulle richieste di booking (thread promoter ↔ artista)
+-- Auto-creata al primo uso da api/booking-messages.php (migration-20).
+-- ------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS booking_messages (
+  id             INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  request_id     INT UNSIGNED NOT NULL,
+  sender_user_id INT UNSIGNED NOT NULL,
+  body           TEXT NOT NULL,
+  created_at     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_req (request_id),
+  CONSTRAINT fk_bm_req    FOREIGN KEY (request_id)     REFERENCES booking_requests(id) ON DELETE CASCADE,
+  CONSTRAINT fk_bm_sender FOREIGN KEY (sender_user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ------------------------------------------------------------
+-- PROMEMORIA EVENTO inviati (dedup email "3 giorni prima")
+-- Auto-creata al primo uso da send_event_reminders() in api/_mail.php (migration-20).
+-- ------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS booking_reminders (
+  request_id INT UNSIGNED NOT NULL,
+  sent_at    TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (request_id),
+  CONSTRAINT fk_rem_req FOREIGN KEY (request_id) REFERENCES booking_requests(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 SET foreign_key_checks = 1;
 
 -- ------------------------------------------------------------

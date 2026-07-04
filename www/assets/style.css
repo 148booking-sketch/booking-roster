@@ -50,19 +50,53 @@ a{color:inherit;text-decoration:none}
 .btn.sm{padding:9px 15px;font-size:14px;border-radius:8px}
 .btn:disabled{opacity:.5;cursor:not-allowed}
 
-/* pulsanti icona dell'header (Cerca/Accedi/Registrati/Profilo/Account/Esci/Admin/Richieste),
-   stesso stile dei chip genere (.cat): icona sopra, grigio→colore, nessun bordo/pill */
-.navicon{display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:0;color:var(--muted);cursor:pointer;text-decoration:none;font-size:11px;font-weight:600;padding:4px 6px;font-family:inherit;opacity:.85}
-.navicon .ic{font-size:20px;filter:grayscale(1);opacity:.7}
-.navicon:hover{color:var(--txt);opacity:1}
-.navicon:hover .ic{filter:none;opacity:1}
-/* gruppo pulsanti header (Cerca/Accedi/Registrati o Profilo): sempre su una riga */
-.nav-actions{display:flex;align-items:center;gap:10px;flex-wrap:nowrap;flex:none}
-@media(max-width:480px){
-  .nav-actions{gap:2px}
-  .navicon{padding:4px 4px;font-size:10px}
-  .navicon .ic{font-size:18px}
+/* ---------- HEADER NAV (design system 2026) ----------
+   Logo · link testuali con underline attivo · campana · menu utente con avatar. */
+.svg-ic,.ic-svg{display:inline-block;vertical-align:-3px;flex:none}
+.nav-inner{gap:26px}
+.nav-links{display:flex;align-items:center;gap:24px;font-size:14px;font-weight:600;flex:1;min-width:0;overflow-x:auto;scrollbar-width:none}
+.nav-links::-webkit-scrollbar{display:none}
+.nav-link{position:relative;color:var(--muted);padding:4px 0;text-decoration:none;white-space:nowrap;transition:color .15s}
+.nav-link:hover{color:var(--txt)}
+.nav-link.on{color:var(--txt)}
+.nav-link.on::after{content:"";position:absolute;left:0;right:0;bottom:-3px;height:2px;background:var(--brand);border-radius:2px}
+.nav-right{display:flex;align-items:center;gap:11px;flex:none}
+.nav-bell{width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:#fff;display:flex;align-items:center;justify-content:center;color:#444;cursor:pointer;text-decoration:none;flex:none}
+.nav-bell:hover{background:var(--panel2)}
+/* menu utente: pill avatar + tendina */
+.usermenu{position:relative}
+.nav-avatar{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);border-radius:40px;padding:5px 12px 5px 6px;cursor:pointer;font-family:inherit;color:var(--txt)}
+.nav-avatar:hover{box-shadow:0 1px 6px rgba(0,0,0,.12)}
+.avatar{width:30px;height:30px;border-radius:50%;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;flex:none}
+.nav-avatar-name{font-size:13.5px;font-weight:600;white-space:nowrap}
+.nav-avatar .ic-svg{color:var(--muted)}
+.menu-pop{position:absolute;right:0;top:calc(100% + 8px);min-width:210px;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow-lg);padding:8px;display:none;z-index:60}
+.usermenu.open .menu-pop{display:block}
+.menu-item{display:flex;align-items:center;gap:11px;width:100%;padding:10px 12px;border-radius:9px;background:none;border:0;cursor:pointer;font:600 14px/1 inherit;color:var(--txt);text-decoration:none;text-align:left}
+.menu-item:hover{background:var(--panel2)}
+.menu-item .ic-svg{color:var(--muted)}
+@media(max-width:760px){
+  .nav-inner{gap:14px}
+  .nav-avatar-name{display:none}
+  .nav-avatar{padding:5px 6px}
 }
+@media(max-width:480px){
+  .nav-links{gap:16px;font-size:13.5px}
+}
+
+/* ---------- DESIGN SYSTEM: componenti condivisi 2026 ---------- */
+/* etichetta sezione (form/admin): maiuscoletto tenue */
+.section-label{font:700 11px var(--f-body);letter-spacing:.06em;text-transform:uppercase;color:#9a9aa2;margin:8px 0 12px}
+/* pill di stato (online/in attesa/offline/promo) */
+.status{display:inline-flex;align-items:center;gap:6px;font:700 12px var(--f-body);border-radius:20px;padding:6px 12px;white-space:nowrap}
+.status .dot{width:7px;height:7px;border-radius:50%;background:currentColor;flex:none}
+.status.ok{color:#0a7d38;background:#eafaf0}
+.status.warn{color:#a86a00;background:#fff5e6}
+.status.off{color:#717171;background:#f2f2f2}
+.status.promo{color:#c0395e;background:#fbe9ee}
+/* pill "verificato" (spunta blu Twitter-style) riusabile */
+.verif{display:inline-flex;align-items:center;gap:5px;font:700 11px var(--f-body);background:#fff;border:1px solid var(--line);border-radius:20px;padding:4px 10px}
+.verif .tick{width:12px;height:12px;border-radius:50%;background:#1d9bf0;color:#fff;font-size:7px;font-weight:900;display:flex;align-items:center;justify-content:center}
 
 /* ---------- SEARCH PILL (header) ---------- */
 .searchpill{display:flex;align-items:center;border:1px solid var(--line);border-radius:40px;box-shadow:0 1px 6px rgba(0,0,0,.08);background:#fff;height:56px;overflow:hidden}
@@ -158,6 +192,28 @@ textarea{min-height:100px;resize:vertical}
 .tag{font-size:12px;background:var(--panel2);border-radius:8px;padding:3px 9px;color:var(--muted)}
 .tags{display:flex;flex-wrap:wrap;gap:7px}
 .badge{background:var(--txt);color:#fff;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px}
+/* pulsante preferito (cuore) — promoter/management. Attivo = cuore pieno brand. */
+.favbtn{border:0;background:none;cursor:pointer;color:var(--muted);line-height:1;padding:0;transition:transform .12s,color .12s;display:inline-flex;align-items:center;justify-content:center}
+.favbtn.on{color:var(--brand)}
+.favbtn.on .ic-svg{fill:currentColor}
+.favbtn:hover{transform:scale(1.12)}
+.favbtn:disabled{opacity:.5;cursor:default}
+.favbtn.card-fav{position:absolute;top:10px;right:10px;z-index:3;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.92);box-shadow:0 2px 6px rgba(0,0,0,.22)}
+/* campana notifiche: pallino "nuove" + dropdown feed */
+.nav-bell{position:relative}
+.notif-dot{position:absolute;top:8px;right:9px;width:9px;height:9px;border-radius:50%;background:var(--brand);border:2px solid #fff}
+.notif-pop{min-width:320px;max-width:360px;max-height:420px;overflow-y:auto;padding:6px}
+.notif-item{display:flex;align-items:flex-start;gap:11px;padding:11px 12px;border-radius:10px;text-decoration:none;color:var(--txt)}
+.notif-item:hover{background:var(--panel2)}
+.notif-ic{width:32px;height:32px;border-radius:50%;background:var(--panel2);display:flex;align-items:center;justify-content:center;color:#555;flex:none}
+.notif-txt{min-width:0;flex:1;font-size:13.5px;line-height:1.35}
+.notif-txt b{display:block;font-weight:600}
+.notif-txt span{color:var(--muted);font-size:12.5px}
+.notif-when{flex:none;font-size:11px;color:var(--muted);margin-top:2px;white-space:nowrap}
+.notif-empty{padding:22px 14px;text-align:center;color:var(--muted);font-size:13.5px}
+/* chip con icona SVG inline */
+.chip-ic{display:inline-flex;align-items:center;gap:6px}
+.chip-ic .ic-svg{flex:none}
 .cachet{font-weight:700}
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--txt);color:#fff;padding:14px 20px;border-radius:12px;box-shadow:var(--shadow-lg);z-index:200;font-weight:600;opacity:0;transition:.25s;pointer-events:none}
 .toast.show{opacity:1;bottom:34px}

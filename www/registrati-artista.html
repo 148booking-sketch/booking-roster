@@ -11,9 +11,9 @@
 
 <main class="container" style="max-width:480px;padding-top:40px">
   <h1 class="title">Registrati come artista</h1>
-  <p class="sub" id="introSub">Passo 1 di 2 · verifichiamo il tuo profilo Apple Music/iTunes.</p>
+  <p class="sub" id="introSub">Passo 1 di 3 · verifichiamo il tuo profilo Apple Music/iTunes.</p>
 
-  <!-- STEP 1: idoneità -->
+  <!-- STEP 1: idoneità Apple Music -->
   <form class="panel" id="step1" onsubmit="return checkEligibility(event)">
     <div class="field"><label>Link al tuo profilo artista Apple Music</label>
       <input type="url" id="am_url" placeholder="https://music.apple.com/it/artist/..." required>
@@ -26,20 +26,36 @@
   <div class="panel" id="notEligible" style="display:none;text-align:center">
     <div style="font-size:44px;line-height:1">🎧</div>
     <h3 style="margin:10px 0 4px">Grazie per l'interesse!</h3>
-    <p class="sub" style="margin-top:0">Al momento il profilo non raggiunge ancora i requisiti minimi (4 brani pubblicati negli ultimi 2 anni) per entrare nel roster 148. Continua a pubblicare la tua musica e ricandidati più avanti — in bocca al lupo! 🎶</p>
+    <p class="sub" style="margin-top:0">Al momento il profilo non raggiunge ancora i requisiti minimi (4 brani pubblicati negli ultimi 2 anni) per entrare nel roster. Continua a pubblicare la tua musica e ricandidati più avanti — in bocca al lupo! 🎶</p>
     <a class="btn ghost" style="width:100%;display:block;box-sizing:border-box" href="/">Torna alla home</a>
   </div>
 
-  <!-- STEP 2: dati anagrafici -->
-  <form class="panel" id="step2" style="display:none" onsubmit="return doReg(event)">
-    <div class="hint" style="margin-bottom:14px" id="eligMsg"></div>
+  <!-- STEP 2: verifica Google Calendar -->
+  <form class="panel" id="step2cal" style="display:none" onsubmit="return checkCalendar(event)">
+    <div class="hint" id="eligMsg" style="margin-bottom:14px"></div>
+    <div class="field"><label>Indirizzo iCal del tuo Google Calendar</label>
+      <input type="url" id="cal_url" placeholder="https://calendar.google.com/calendar/ical/.../basic.ics" required>
+      <div class="hint">Su Google Calendar apri <b>Impostazioni → il tuo calendario → Integra il calendario</b> e copia l'<b>Indirizzo segreto in formato iCal</b> (finisce con <code>.ics</code>). Ci serve per mostrare ai promoter le tue date libere/occupate. Il link resta privato, non viene mai pubblicato.</div>
+    </div>
+    <button class="btn primary" style="width:100%" id="calBtn">Verifica calendario</button>
+  </form>
+
+  <!-- STEP 3: dati anagrafici + nome d'arte -->
+  <form class="panel" id="step3" style="display:none" onsubmit="return doReg(event)">
+    <div class="hint" id="calMsg" style="margin-bottom:14px"></div>
     <div class="row">
       <div class="field"><label>Nome</label><input id="rg_nome" required></div>
       <div class="field"><label>Cognome</label><input id="rg_cognome" required></div>
     </div>
+    <div class="field"><label>Nome d'arte</label><input id="rg_stage" required>
+      <div class="hint">È il nome con cui apparirai nel roster.</div></div>
+    <div class="row">
+      <div class="autocomplete field" style="flex:2"><label>Comune</label><input id="rg_comune" placeholder="Es. Roma" required></div>
+      <div class="field" style="max-width:110px"><label>Prov.</label><input id="rg_prov" maxlength="2" placeholder="RM"></div>
+    </div>
+    <div class="field"><label>Telefono</label><input id="rg_phone" placeholder="+39..." required></div>
     <div class="field"><label>Email</label><input type="email" id="rg_email" required>
       <div class="hint">Usa la <b>stessa email che usi per la SIAE</b>.</div></div>
-    <div class="field"><label>Telefono</label><input id="rg_phone" placeholder="+39..." required></div>
     <div class="field"><label>Password (min 8 caratteri)</label><input type="password" id="rg_pass" minlength="8" required></div>
     <button class="btn primary" style="width:100%">Crea account</button>
     <div class="hint" style="margin-top:10px">Dopo la registrazione riceverai un'email per <b>verificare l'account</b>.</div>
@@ -61,16 +77,17 @@
 renderNav();
 let pendingEmail = '';
 
+// STEP 1 → idoneità Apple Music
 async function checkEligibility(e){ e.preventDefault();
   const btn = checkBtn, old = btn.textContent;
   btn.disabled = true; btn.textContent = '⏳ Verifica in corso…';
   try {
     const r = await api('artist-eligibility-check.php',{method:'POST',body:{itunes: am_url.value}});
     if (r.eligible){
-      eligMsg.textContent = r.artist_name ? `✓ Profilo idoneo (${r.artist_name}): completa la registrazione.` : '✓ Profilo idoneo: completa la registrazione.';
+      eligMsg.textContent = r.artist_name ? `✓ Profilo idoneo (${r.artist_name}). Ora collega il calendario.` : '✓ Profilo idoneo. Ora collega il calendario.';
       step1.style.display = 'none';
-      step2.style.display = '';
-      introSub.textContent = 'Passo 2 di 2 · i tuoi dati.';
+      step2cal.style.display = '';
+      introSub.textContent = 'Passo 2 di 3 · verifica il tuo Google Calendar.';
     } else {
       step1.style.display = 'none';
       notEligible.style.display = '';
@@ -81,10 +98,26 @@ async function checkEligibility(e){ e.preventDefault();
   return false;
 }
 
+// STEP 2 → verifica Google Calendar
+async function checkCalendar(e){ e.preventDefault();
+  const btn = calBtn, old = btn.textContent;
+  btn.disabled = true; btn.textContent = '⏳ Verifica in corso…';
+  try {
+    await api('calendar-check.php',{method:'POST',body:{calendar_url: cal_url.value}});
+    calMsg.textContent = '✓ Calendario collegato: completa la registrazione.';
+    step2cal.style.display = 'none';
+    step3.style.display = '';
+    introSub.textContent = 'Passo 3 di 3 · i tuoi dati.';
+    comuniAutocomplete(rg_comune, (n, pr) => rg_prov.value = pr);
+  } catch(err){ toast(errMsg(err), true); }
+  finally { btn.disabled = false; btn.textContent = old; }
+  return false;
+}
+
 function showVerify(email){
   pendingEmail = email;
   vf_email.textContent = email;
-  step2.style.display = 'none';
+  step3.style.display = 'none';
   introSub.style.display = 'none';
   formVerify.style.display = '';
 }
@@ -93,12 +126,15 @@ async function doResend(){
   catch(err){ toast(errMsg(err), true); }
 }
 
+// STEP 3 → crea account
 async function doReg(e){ e.preventDefault();
   try {
     const display_name = (rg_nome.value + ' ' + rg_cognome.value).trim();
     const r = await api('register.php',{method:'POST',body:{
       role:'artist', display_name, email:rg_email.value, password:rg_pass.value,
-      phone:rg_phone.value, applemusic:am_url.value }});
+      stage_name:rg_stage.value, phone:rg_phone.value,
+      comune:rg_comune.value, provincia:rg_prov.value,
+      calendar_url:cal_url.value, applemusic:am_url.value }});
     showVerify(r.email || rg_email.value);
   } catch(err){ toast(errMsg(err), true); }
   return false;

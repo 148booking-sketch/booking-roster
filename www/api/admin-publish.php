@@ -37,9 +37,18 @@ if ($pub === 1) {
 
 // published_at si imposta solo alla prima transizione 0→1: segna il momento in cui l'artista
 // diventa visibile ed è l'ancora usata dal digest email per capire chi è "nuovo".
-if ($pub === 1 && (int)$row['published'] === 0 && $row['published_at'] === null) {
+$firstPublish = ($pub === 1 && (int)$row['published'] === 0 && $row['published_at'] === null);
+if ($firstPublish) {
   db()->prepare('UPDATE artist_profiles SET published = 1, published_at = NOW() WHERE user_id = ?')->execute([$id]);
 } else {
   db()->prepare('UPDATE artist_profiles SET published = ? WHERE user_id = ?')->execute([$pub, $id]);
 }
+
+// Prima pubblicazione → email "profilo online" all'artista (best-effort).
+if ($firstPublish) {
+  require_once __DIR__ . '/_mail.php';
+  if (session_status() === PHP_SESSION_ACTIVE) session_write_close();
+  notify_artist_published($id);
+}
+
 ok(['id' => $id, 'published' => $pub]);

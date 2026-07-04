@@ -10,7 +10,7 @@
 <body>
 <nav class="nav" id="nav"></nav>
 
-<main class="container narrow section">
+<div id="gateWrap" class="container narrow section">
 
   <!-- GATE: mostrato se non sei admin -->
   <div id="gate" style="display:none;max-width:460px;margin:0 auto">
@@ -34,30 +34,44 @@
     </details>
   </div>
 
-  <!-- PANNELLO ADMIN -->
-  <div id="panel" style="display:none">
-    <h1 class="title">Admin · gestione utenti</h1>
-    <p class="sub">Crea e modifica artisti e promoter. La password non è modificabile da qui (l'utente la reimposta da solo).</p>
+</div><!-- /gateWrap -->
 
-    <div class="tabs">
-      <button id="tabD" class="on" onclick="tab('dash')">📊 Panoramica</button>
-      <button id="tabA" onclick="tab('artisti')">🎤 Artisti</button>
-      <button id="tabP" onclick="tab('promoter')">📣 Promoter</button>
-      <button id="tabG" onclick="tab('agenzia')">🎧 Agenzia</button>
-      <button id="tabR" onclick="tab('richieste')">📨 Richieste</button>
-      <button id="tabAd" onclick="tab('admins')" style="display:none">👑 Admin</button>
-      <button id="tabS" onclick="tab('set')">⚙️ Impostazioni</button>
-    </div>
+  <!-- PANNELLO ADMIN · shell con sidebar scura + contenuto largo (design system) -->
+  <div id="panel" class="admin-shell" style="display:none">
+    <aside class="admin-side">
+      <div class="as-brand"><span class="as-mk" id="asMk"></span>Roster<span class="dim"> admin</span></div>
+      <nav class="as-nav">
+        <button class="as-item on" id="tabD" onclick="tab('dash')" data-ic="grid">Panoramica</button>
+        <button class="as-item" id="tabA" onclick="tab('artisti')" data-ic="mic">Artisti<span class="as-badge" id="asCntA" style="display:none"></span></button>
+        <button class="as-item" id="tabP" onclick="tab('promoter')" data-ic="speaker">Promoter</button>
+        <button class="as-item" id="tabG" onclick="tab('agenzia')" data-ic="agency">Agenzie</button>
+        <button class="as-item" id="tabR" onclick="tab('richieste')" data-ic="inbox">Richieste<span class="as-badge" id="asCntR" style="display:none"></span></button>
+        <div class="as-div"></div>
+        <button class="as-item" id="tabAd" onclick="tab('admins')" data-ic="shield" style="display:none">Admin</button>
+        <button class="as-item" id="tabS" onclick="tab('set')" data-ic="sliders">Impostazioni</button>
+      </nav>
+      <div class="as-foot">
+        <a class="as-item" href="/" data-ic="home">Torna al sito</a>
+        <button class="as-item" onclick="logout()" data-ic="logout">Esci</button>
+        <div class="as-user"><span class="avatar" id="asAvatar"></span><div class="asu-txt"><div id="asName">Admin</div><div id="asRole" class="dim"></div></div></div>
+      </div>
+    </aside>
+    <div class="admin-main">
+      <div class="admin-head">
+        <h1 id="viewTitle" class="title" style="margin:0;font-size:24px">Panoramica</h1>
+        <p class="sub" id="viewSub" style="margin:4px 0 0"></p>
+      </div>
+      <div class="admin-body">
 
     <!-- ═══ 📊 PANORAMICA ═══ -->
     <div id="dashW">
       <div id="dashCards" class="req-report"></div>
       <section class="list-section" style="margin-top:18px">
-        <h3 class="ls-title">⏳ Artisti da approvare <span class="ls-count" id="cntPending"></span></h3>
+        <h3 class="ls-title" data-ic="clock">Artisti da approvare <span class="ls-count" id="cntPending"></span></h3>
         <div id="pendingList" class="admin-list"></div>
       </section>
       <section class="list-section" style="margin-top:18px">
-        <h3 class="ls-title">📨 Richieste promoter → artista <span class="ls-count" id="cntReq"></span></h3>
+        <h3 class="ls-title" data-ic="inbox">Richieste promoter → artista <span class="ls-count" id="cntReq"></span></h3>
         <div class="list-filters"><input id="req_q" placeholder="Cerca per artista o promoter…" oninput="renderReqList()"></div>
         <div id="reqList" class="admin-list"></div>
       </section>
@@ -67,17 +81,17 @@
     <div id="artistiW" style="display:none">
       <div id="artistiList">
         <div class="sec-toolbar">
-          <h3 class="ls-title" style="margin:0">🎤 Artisti <span class="ls-count" id="cntA"></span></h3>
-          <button type="button" class="btn primary sm" onclick="startNewArtist()">➕ Nuovo artista</button>
+          <h3 class="ls-title" style="margin:0" data-ic="mic">Artisti <span class="ls-count" id="cntA"></span></h3>
+          <button type="button" class="btn primary sm" onclick="startNewArtist()" data-ic="plus" data-ic-size="15">Nuovo artista</button>
         </div>
         <div class="list-filters">
           <input id="fa_q" placeholder="Cerca artista…" oninput="renderLists()">
           <select id="fa_show" onchange="renderLists()"></select>
           <select id="fa_state" onchange="renderLists()">
             <option value="">Tutti gli stati</option>
-            <option value="online">🟢 Online</option>
-            <option value="review">⏳ In revisione</option>
-            <option value="unverified">📧 Email da verificare</option>
+            <option value="online">Online</option>
+            <option value="review">In revisione</option>
+            <option value="unverified">Email da verificare</option>
             <option value="verified">✓ Verificati</option>
           </select>
           <select id="fa_sort" onchange="renderLists()">
@@ -120,7 +134,7 @@
       <div id="a_managedHint" class="hint" style="display:none;margin:-10px 0 14px">🔒 Profilo gestito direttamente da noi: email e password generate automaticamente, l'artista non ha bisogno di accedere.</div>
 
       <div class="field" id="a_managerWrap" style="max-width:360px;margin:0 0 16px">
-        <label>🎧 Agenzia booking <span class="hint" style="display:inline">(opzionale)</span></label>
+        <label>Agenzia booking <span class="hint" style="display:inline">(opzionale)</span></label>
         <select id="a_manager"><option value="">— nessuna —</option></select>
         <div class="hint">Associa l'artista a un'agenzia booking: la potrà gestire (modifica/elimina) dalla sua dashboard.</div>
       </div>
@@ -168,8 +182,8 @@
     <div id="promoterW" style="display:none">
       <div id="promoterList">
         <div class="sec-toolbar">
-          <h3 class="ls-title" style="margin:0"><span id="pTitleLabel">📣 Promoter</span> <span class="ls-count" id="cntP"></span></h3>
-          <button type="button" class="btn primary sm" id="pNewBtn" onclick="startNewPromoter()">➕ Nuovo promoter</button>
+          <h3 class="ls-title" style="margin:0"><span id="pTitleLabel">Promoter</span> <span class="ls-count" id="cntP"></span></h3>
+          <button type="button" class="btn primary sm" id="pNewBtn" onclick="startNewPromoter()">Nuovo promoter</button>
         </div>
         <div class="list-filters">
           <input id="fp_q" placeholder="Cerca…" oninput="renderLists()">
@@ -182,7 +196,7 @@
           <select id="fp_state" onchange="renderLists()">
             <option value="">Tutti gli stati</option>
             <option value="verified">✓ Verificati (attivi)</option>
-            <option value="unverified">⏳ Da verificare</option>
+            <option value="unverified">Da verificare</option>
             <option value="blocked">⛔ Bloccati</option>
           </select>
           <select id="fp_sort" onchange="renderLists()">
@@ -245,8 +259,8 @@
     <div id="adminsW" style="display:none">
       <div id="adminsList">
         <div class="sec-toolbar">
-          <h3 class="ls-title" style="margin:0">👑 Admin <span class="ls-count" id="cntAd"></span></h3>
-          <button type="button" class="btn primary sm" onclick="startNewAdmin()">➕ Nuovo admin</button>
+          <h3 class="ls-title" style="margin:0" data-ic="shield">Admin <span class="ls-count" id="cntAd"></span></h3>
+          <button type="button" class="btn primary sm" onclick="startNewAdmin()" data-ic="plus" data-ic-size="15">Nuovo admin</button>
         </div>
         <div class="hint" style="margin:0 0 12px">Un admin "ridotto" può fare tutto tranne: creare/modificare/eliminare altri admin, ed eliminare artisti/promoter/agenzie (può solo aggiornarli).</div>
         <div id="listAd" class="admin-list"></div>
@@ -281,16 +295,16 @@
     <!-- ═══ 📨 RICHIESTE (promoter → artista) ═══ -->
     <div id="richiesteW" style="display:none">
       <div class="sec-toolbar">
-        <h3 class="ls-title" style="margin:0">📨 Richieste <span class="ls-count" id="cntReqTab"></span></h3>
+        <h3 class="ls-title" style="margin:0" data-ic="inbox">Richieste <span class="ls-count" id="cntReqTab"></span></h3>
       </div>
       <div class="list-filters">
         <input id="rq_q" placeholder="Cerca per artista o promoter…" oninput="renderRequestsTab()">
         <select id="rq_status" onchange="renderRequestsTab()">
           <option value="">Tutti gli stati</option>
-          <option value="pending">⏳ In attesa (inviata/vista)</option>
-          <option value="accettata">✅ Accettate</option>
-          <option value="rifiutata">❌ Rifiutate</option>
-          <option value="ritirata">↩︎ Ritirate</option>
+          <option value="pending">In attesa (inviata/vista)</option>
+          <option value="accettata">Accettate</option>
+          <option value="rifiutata">Rifiutate</option>
+          <option value="ritirata">Ritirate</option>
         </select>
       </div>
       <div id="listReq" class="admin-list"></div>
@@ -298,7 +312,7 @@
 
     <!-- IMPOSTAZIONI STATISTICHE -->
     <form id="settingsW" class="panel" style="display:none" onsubmit="return saveSettings(event)">
-      <h3 style="margin:0 0 6px">📊 Chiavi statistiche social</h3>
+      <h3 style="margin:0 0 6px" data-ic="sliders">Chiavi statistiche social</h3>
       <p class="hint" style="margin:0 0 14px">Servono per calcolare i follower. Se una chiave è già in <code>config.php</code> risulta "attiva" e il campo qui può restare vuoto.</p>
       <div class="field">
         <label>Spotify Client ID <span id="st_spotify_client_id" class="stbadge"></span></label>
@@ -319,8 +333,9 @@
       </div>
       <button class="btn primary">Salva chiavi</button>
     </form>
-  </div>
-</main>
+      </div><!-- /admin-body -->
+    </div><!-- /admin-main -->
+  </div><!-- /panel -->
 
 <script src="/assets/api.js"></script>
 <script src="/assets/artist-form.js"></script>
@@ -338,9 +353,16 @@ let IS_SUPER = false, ME_ID = null;
 async function showPanel(me){
   gate.style.display = 'none';
   panel.style.display = '';
+  document.getElementById('nav').style.display = 'none';   // shell admin: navigazione propria nella sidebar
   IS_SUPER = !!(me && me.user && me.user.admin_super);
   ME_ID = me && me.user ? me.user.id : null;
   tabAd.style.display = IS_SUPER ? '' : 'none';
+  // sidebar: icone SVG lineari + logo + avatar + ruolo
+  injectIcons(document);
+  asMk.innerHTML = icon('mic', 16, 1.9);
+  const nm = me.user.display_name || me.user.email || 'Admin';
+  asAvatar.textContent = avatarInitials(nm); asAvatar.style.background = avatarColor(nm);
+  asName.textContent = nm; asRole.textContent = IS_SUPER ? 'Super admin' : 'Admin';
   await loadGenres();
   artistFormMount('artistFormMount', 'a_');
   artistFormReset('a_');
@@ -354,6 +376,16 @@ let CUR = 'dash';
  * promoter_profiles, filtrata per role) — non un pannello duplicato. promoMode ricorda quale. */
 let promoMode = 'promoter';
 const TABS = {dash:['dashW',tabD], artisti:['artistiW',tabA], promoter:['promoterW',tabP], agenzia:['promoterW',tabG], richieste:['richiesteW',tabR], admins:['adminsW',tabAd], set:['settingsW',tabS]};
+const VIEW_META = {
+  dash:['Panoramica','Numeri chiave e code di lavoro'],
+  artisti:['Artisti','Crea, approva e modifica gli artisti del roster'],
+  promoter:['Promoter','Locali, festival e organizzatori'],
+  agenzia:['Agenzie','Account booking / management che gestiscono un roster'],
+  richieste:['Richieste','Le richieste di booking promoter → artista'],
+  admins:['Amministratori','Gestione degli account admin'],
+  set:['Impostazioni','Chiavi statistiche e configurazione'],
+};
+function setSideBadge(id, n){ const el=document.getElementById(id); if(!el) return; el.textContent=n; el.style.display = n>0 ? '' : 'none'; }
 function tab(t){
   if (t==='admins' && !IS_SUPER) return;
   CUR = t;
@@ -361,6 +393,7 @@ function tab(t){
   wrappers.forEach(w => document.getElementById(w).style.display = 'none');
   document.getElementById(TABS[t][0]).style.display = '';
   for (const k in TABS) TABS[k][1].classList.toggle('on', k===t);
+  const vm = VIEW_META[t]; if (vm) { viewTitle.textContent = vm[0]; viewSub.textContent = vm[1]; }
   if (t==='artisti'){ showArtistList(); loadList(); }
   else if (t==='promoter'){ promoMode='promoter'; showPromoterList(); loadList(); }
   else if (t==='agenzia'){ promoMode='agenzia'; showPromoterList(); loadList(); }
@@ -424,9 +457,9 @@ function adminRow(a){
       <span class="muted">${esc(a.email)}</span>
     </div>
     <div class="ar-right">
-      <span class="ar-badges">${a.admin_super==1?'<span class="tg ok">👑 super</span>':'<span class="tg warn">🔒 ridotto</span>'}${a.status==='blocked'?'<span class="tg bad">⛔ bloccato</span>':''}${isMe?'<span class="tg mail">tu</span>':''}</span>
+      <span class="ar-badges">${a.admin_super==1?'<span class="tg ok">super</span>':'<span class="tg warn">ridotto</span>'}${a.status==='blocked'?'<span class="tg bad">bloccato</span>':''}${isMe?'<span class="tg mail">tu</span>':''}</span>
       ${isMe?'':`<button type="button" class="btn ghost sm del" title="Elimina" data-name="${esc(a.display_name||a.email||'')}"
-        onclick="event.stopPropagation();deleteAdmin(${a.id},this)">🗑 cancella</button>`}
+        onclick="event.stopPropagation();deleteAdmin(${a.id},this)">${icon('trash',13)} cancella</button>`}
     </div></div>`;
 }
 async function editAdmin(id){
@@ -463,20 +496,22 @@ async function loadDash(){
     const review  = _allA.filter(a=>a.published!=1);
     const unver   = _allA.filter(a=>a.email_verified==0).length + _allP.filter(p=>p.email_verified==0).length;
     const rp = req.report;
-    const card = (l,v,c,onclick) => `<div class="rc${onclick?' clk':''}" ${onclick?`onclick="${onclick}"`:''}><div class="rc-n" ${c?`style="color:${c}"`:''}>${v}</div><div class="rc-l">${l}</div></div>`;
+    const card = (ic,l,v,c,onclick) => `<div class="rc${onclick?' clk':''}" ${onclick?`onclick="${onclick}"`:''}><div class="rc-n" ${c?`style="color:${c}"`:''}>${v}</div><div class="rc-l">${icon(ic,13,2)} ${l}</div></div>`;
     dashCards.innerHTML = [
-      card('🎤 Artisti', _allA.length, '', "tab('artisti')"),
-      card('🟢 Online', online, '#0a7d38'),
-      card('⏳ Da approvare', review.length, '#a5730a'),
-      card('📧 Email da verificare', unver, '#2563eb'),
-      card('📣 Promoter', _allP.filter(p=>p.role!=='management').length, '', "tab('promoter')"),
-      card('🎧 Agenzia', _allP.filter(p=>p.role==='management').length, '', "tab('agenzia')"),
-      card('📨 Richieste in attesa', rp.pending, '#2563eb'),
-      card('✅ Accettate', rp.by_status.accettata, '#0a7d38'),
-      card('💶 Valore accettato', eur(rp.accepted_value), '#0a7d38'),
+      card('mic','Artisti', _allA.length, '', "tab('artisti')"),
+      card('check','Online', online, '#0a7d38'),
+      card('clock','Da approvare', review.length, '#a5730a'),
+      card('mail','Email da verificare', unver, '#2563eb'),
+      card('speaker','Promoter', _allP.filter(p=>p.role!=='management').length, '', "tab('promoter')"),
+      card('agency','Agenzie', _allP.filter(p=>p.role==='management').length, '', "tab('agenzia')"),
+      card('inbox','Richieste in attesa', rp.pending, '#2563eb'),
+      card('check','Accettate', rp.by_status.accettata, '#0a7d38'),
+      card('euro','Valore accettato', eur(rp.accepted_value), '#0a7d38'),
     ].join('');
     cntPending.textContent = review.length;
-    pendingList.innerHTML = review.length ? review.map(artistRow).join('') : '<div class="empty">Nessun artista in attesa 🎉</div>';
+    setSideBadge('asCntA', review.length);
+    setSideBadge('asCntR', rp.pending);
+    pendingList.innerHTML = review.length ? review.map(artistRow).join('') : '<div class="empty">Nessun artista in attesa</div>';
     _reqs = req.requests || [];
     renderReqList();
   } catch(err){ toast(errMsg(err), true); }
@@ -484,8 +519,8 @@ async function loadDash(){
 
 /* ---- Richieste promoter → artista (nella Panoramica) ---- */
 let _reqs = [];
-const REQ_STATUS = {inviata:['📨 Inviata','#6b7280'], vista:['👀 Vista','#2563eb'],
-  accettata:['✅ Accettata','#0a7d38'], rifiutata:['❌ Rifiutata','#c0395e'], ritirata:['↩︎ Ritirata','#92700f']};
+const REQ_STATUS = {inviata:['Inviata','#6b7280'], vista:['Vista','#2563eb'],
+  accettata:['Accettata','#0a7d38'], rifiutata:['Rifiutata','#c0395e'], ritirata:['Ritirata','#92700f']};
 function fmtDate(s){ if(!s) return '—'; const d=new Date(s.replace(' ','T')); return d.toLocaleDateString('it-IT'); }
 function reqRow(x){
   const s = REQ_STATUS[x.status] || [x.status,'#666'];
@@ -498,8 +533,8 @@ function reqRow(x){
     </div>
     <div class="req-meta">
       <span title="Data richiesta">🗓 ${fmtDate(x.created_at)}</span>
-      ${x.event_date?`<span title="Data evento">🎤 ${fmtDate(x.event_date)}</span>`:''}
-      <span title="Compenso proposto">💶 ${x.proposed_fee!=null?eur(x.proposed_fee):'—'}</span>
+      ${x.event_date?`<span title="Data evento">${icon('calendar',13)} ${fmtDate(x.event_date)}</span>`:''}
+      <span title="Compenso proposto">${icon('euro',13)} ${x.proposed_fee!=null?eur(x.proposed_fee):'—'}</span>
       <span class="req-badge" style="background:${s[1]}22;color:${s[1]}">${s[0]}</span>
       ${x.responded_at?`<span class="muted" title="Data risposta">risposta ${fmtDate(x.responded_at)}</span>`:''}
     </div>
@@ -580,8 +615,8 @@ function newArtist(){
  * evita che sembri "già attivo" quando in realtà è ancora in revisione. ---- */
 function setPublishIndicator(pub, missing){
   missing = missing || [];
-  a_pubBadge.innerHTML = pub ? '<span class="tg on">🟢 online</span>' : '<span class="tg warn">⏳ in revisione</span>';
-  a_pubBtn.textContent = pub ? '🚫 Nascondi dalla ricerca' : '✅ Approva (rendi visibile)';
+  a_pubBadge.innerHTML = pub ? '<span class="tg on">online</span>' : '<span class="tg warn">in revisione</span>';
+  a_pubBtn.textContent = pub ? 'Nascondi dalla ricerca' : 'Approva (rendi visibile)';
   a_pubBtn.dataset.pub = pub ? '1' : '0';
   a_pubMissing.style.display = missing.length ? '' : 'none';
   a_pubMissing.innerHTML = missing.length ? `⚠️ Per pubblicare mancano: <b>${missing.map(esc).join(', ')}</b>` : '';
@@ -649,7 +684,7 @@ async function saveArtist(e){ e.preventDefault();
     verified:a_ver.checked?1:0, top8:a_top8.checked?1:0,
   };
   const oldLabel = a_submit.textContent;
-  a_submit.disabled = true; a_submit.textContent = '⏳ Salvataggio…';
+  a_submit.disabled = true; a_submit.textContent = 'Salvataggio…';
   try {
     let r;
     if (editAId){
@@ -750,14 +785,14 @@ function artistRow(a){
       <span class="muted">${esc([a.comune,a.provincia].filter(Boolean).join(' '))}</span>
     </div>
     <div class="ar-right">
-      <span class="ar-badges">${a.published==1?'<span class="tg on">🟢 online</span>':'<span class="tg warn">⏳ in revisione</span>'}${a.email_verified==0?'<span class="tg mail">📧 email da verificare</span>':''}${a.verified==1?'<span class="tg ok">✓ verificato</span>':''}${a.top8==1?'<span class="tg ok">⭐ FEATURED</span>':''}${a.status==='blocked'?'<span class="tg bad">⛔ bloccato</span>':''}</span>
+      <span class="ar-badges">${a.published==1?'<span class="tg on">online</span>':'<span class="tg warn">in revisione</span>'}${a.email_verified==0?'<span class="tg mail">email da verificare</span>':''}${a.verified==1?'<span class="tg ok">✓ verificato</span>':''}${a.top8==1?'<span class="tg ok">FEATURED</span>':''}${a.status==='blocked'?'<span class="tg bad">bloccato</span>':''}</span>
       ${a.published==1
         ? `<button type="button" class="btn ghost sm" title="Nascondi dalla ricerca" onclick="event.stopPropagation();approveArtist(${a.id},0,this)">🚫 nascondi</button>`
-        : `<button type="button" class="btn primary sm" title="Rendi visibile nella ricerca" onclick="event.stopPropagation();approveArtist(${a.id},1,this)">✅ Approva</button>`}
+        : `<button type="button" class="btn primary sm" title="Rendi visibile nella ricerca" onclick="event.stopPropagation();approveArtist(${a.id},1,this)">Approva</button>`}
       <button type="button" class="btn ghost sm" title="Aggiorna statistiche social e calendario disponibilità"
         onclick="event.stopPropagation();refreshStats(${a.id},this)">🔄 aggiorna</button>
       ${IS_SUPER?`<button type="button" class="btn ghost sm del" title="Elimina" data-name="${esc(a.stage_name||a.display_name||'')}"
-        onclick="event.stopPropagation();deleteUser(${a.id},'artist',this)">🗑 cancella</button>`:''}
+        onclick="event.stopPropagation();deleteUser(${a.id},'artist',this)">${icon('trash',13)} cancella</button>`:''}
     </div></div>`;
 }
 function promoterRow(p){
@@ -767,9 +802,9 @@ function promoterRow(p){
       <span class="muted">${esc([p.comune,p.provincia].filter(Boolean).join(' '))}</span>
     </div>
     <div class="ar-right">
-      <span class="ar-badges">${p.role==='management'?'<span class="tg mail">🎧 booking</span>':''}<span class="tg ok">${esc(p.tipo)}</span>${p.email_verified==0?'<span class="tg mail">📧 email da verificare</span>':''}${p.status==='active'?'<span class="tg ok">✓ verificato</span>':p.status==='blocked'?'<span class="tg bad">⛔ bloccato</span>':'<span class="tg warn">⏳ da verificare</span>'}</span>
+      <span class="ar-badges">${p.role==='management'?'<span class="tg mail">agenzia</span>':''}<span class="tg ok">${esc(p.tipo)}</span>${p.email_verified==0?'<span class="tg mail">email da verificare</span>':''}${p.status==='active'?'<span class="tg ok">✓ verificato</span>':p.status==='blocked'?'<span class="tg bad">bloccato</span>':'<span class="tg warn">da verificare</span>'}</span>
       ${IS_SUPER?`<button type="button" class="btn ghost sm del" title="Elimina" data-name="${esc(p.org_name||p.display_name||'')}"
-        onclick="event.stopPropagation();deleteUser(${p.id},'promoter',this)">🗑 cancella</button>`:''}
+        onclick="event.stopPropagation();deleteUser(${p.id},'promoter',this)">${icon('trash',13)} cancella</button>`:''}
     </div></div>`;
 }
 function sortRows(rows, sortKey, nameFn){
@@ -810,8 +845,8 @@ function renderLists(){
   P = sortRows(P, fp_sort.value, p => p.org_name||p.display_name||'');
   cntA.textContent = qa||show||state ? `${A.length} / ${_allA.length}` : _allA.length;
   cntP.textContent = qp||tipo||pstate ? `${P.length} / ${allWanted.length}` : allWanted.length;
-  pTitleLabel.textContent = promoMode==='agenzia' ? '🎧 Agenzia' : '📣 Promoter';
-  pNewBtn.textContent = promoMode==='agenzia' ? '➕ Nuova agenzia' : '➕ Nuovo promoter';
+  pTitleLabel.innerHTML = promoMode==='agenzia' ? icon('agency',17)+' Agenzie' : icon('speaker',17)+' Promoter';
+  pNewBtn.innerHTML = icon('plus',15) + (promoMode==='agenzia' ? ' Nuova agenzia' : ' Nuovo promoter');
   listA.innerHTML = A.map(artistRow).join('') || '<div class="empty">Nessun artista</div>';
   listP.innerHTML = P.map(promoterRow).join('') || (promoMode==='agenzia' ? '<div class="empty">Nessuna agenzia</div>' : '<div class="empty">Nessun promoter</div>');
   fillManagerOptions();
@@ -854,7 +889,7 @@ async function approveArtist(id, pub, btn){
 
 /* ---- Aggiorna statistiche social + calendario disponibilità di un artista (insieme) ---- */
 async function refreshStats(id, btn){
-  const old = btn.textContent; btn.textContent = '⏳…'; btn.disabled = true;
+  const old = btn.textContent; btn.textContent = '…'; btn.disabled = true;
   try {
     const r = await api('admin-refresh-stats.php',{method:'POST',body:{id}});
     const n = Object.keys(r.stats||{}).length;
@@ -886,6 +921,42 @@ async function doBootstrap(e){ e.preventDefault();
 </script>
 
 <style>
+/* ---- Shell admin: sidebar scura + contenuto largo (design system 2026) ---- */
+.admin-shell{display:flex;min-height:100vh;background:#fff}
+.admin-side{width:224px;flex:none;background:#17171b;color:#9a9aa2;display:flex;flex-direction:column;padding:20px 0;position:sticky;top:0;height:100vh;overflow-y:auto}
+.as-brand{padding:0 20px 20px;display:flex;align-items:center;gap:9px;color:#fff;font-family:var(--f-display);font-weight:700;font-size:15px;letter-spacing:-.3px}
+.as-brand .dim{color:#6b6b74;font-weight:500}
+.as-brand .as-mk{width:28px;height:28px;border-radius:8px;background:var(--brand);display:flex;align-items:center;justify-content:center;color:#fff;flex:none}
+.as-nav{padding:0 10px;display:flex;flex-direction:column;gap:2px}
+.as-item{display:flex;align-items:center;gap:11px;padding:9px 12px;border-radius:9px;color:#9a9aa2;font:500 13.5px var(--f-body);background:none;border:0;cursor:pointer;text-align:left;text-decoration:none;width:100%}
+.as-item:hover{background:rgba(255,255,255,.06);color:#fff}
+.as-item.on{background:var(--brand);color:#fff;font-weight:600}
+.as-item .ic-svg{flex:none}
+.as-badge{margin-left:auto;font:700 11px var(--f-body);color:#fff;background:var(--brand);border-radius:20px;padding:1px 8px}
+.as-item.on .as-badge{background:rgba(0,0,0,.28)}
+.as-div{height:1px;background:rgba(255,255,255,.08);margin:12px}
+.as-foot{margin-top:auto;padding:0 10px}
+.as-foot .as-item{margin-top:2px}
+.as-user{margin:12px 2px 0;padding:12px 10px 0;border-top:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:10px}
+.as-user .avatar{width:32px;height:32px;font-size:12px;flex:none}
+.asu-txt{min-width:0}
+.asu-txt #asName{font-weight:600;font-size:12.5px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.asu-txt .dim{font-size:10.5px;color:#6b6b74}
+.admin-main{flex:1;min-width:0;display:flex;flex-direction:column}
+.admin-head{padding:22px 30px 6px}
+.admin-body{padding:14px 30px 70px}
+@media(max-width:820px){
+  .admin-shell{flex-direction:column}
+  .admin-side{width:100%;height:auto;position:static;flex-direction:row;overflow-x:auto;padding:10px;gap:6px;align-items:center;flex-wrap:nowrap}
+  .as-brand{display:none}
+  .as-nav{flex-direction:row;padding:0;gap:6px;flex:none}
+  .as-div{display:none}
+  .as-foot{margin:0;padding:0;display:flex;gap:6px}
+  .as-user{display:none}
+  .as-item{white-space:nowrap}
+  .admin-head{padding:14px 16px 4px}
+  .admin-body{padding:12px 16px 40px}
+}
 .check{display:inline-flex;align-items:center;gap:6px;margin-right:18px;font-weight:500}
 .check input{width:auto}
 .edit-banner{background:#fff7e6;border:1px solid #ffe1a8;color:#7a5b00;padding:8px 12px;border-radius:10px;margin-bottom:14px;font-weight:600;font-size:14px}

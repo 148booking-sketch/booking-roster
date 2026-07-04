@@ -317,6 +317,7 @@ function render(){
             <div class="id-social">
               ${socials.map(([k,v])=>socialIcon(k,socialHref(k,v),SM[k]&&SM[k][1])).join('')}
               ${a.website?socialIcon('website',a.website,'#555'):''}
+              ${a.can_favorite?favBtnHtml(a.user_id,a.is_favorite):''}
             </div>
             <div class="id-genre tags">${genres}</div>
           </div>
@@ -335,8 +336,8 @@ function render(){
 // invio richiesta INLINE (niente popup): data dal calendario + offerta + note
 async function sendReq(){
   const me=await getMe();
-  if(!me.user){ toast('Accedi come promoter per contattare',true); setTimeout(()=>location.href='/accedi.html',900); return; }
-  if(me.user.role!=='promoter'){ toast('Solo i promoter possono inviare richieste',true); return; }
+  if(!me.user){ toast('Accedi per contattare l\'artista',true); setTimeout(()=>location.href='/accedi.html',900); return; }
+  if(!['promoter','management'].includes(me.user.role)){ toast('Solo promoter e agenzie possono inviare richieste',true); return; }
   if(!selectedDate){ toast('Seleziona una data dal calendario',true); return; }
   const msg=(document.getElementById('m_msg').value||'').trim();
   if(!msg){ toast('Scrivi una nota',true); return; }

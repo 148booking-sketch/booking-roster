@@ -45,6 +45,9 @@ const ERR = {
   not_eligible:'Artista non idoneo: servono almeno 4 brani pubblicati negli ultimi 2 anni',
   forbidden_not_super_admin:'Azione riservata ai super admin: il tuo account admin ha privilegi ridotti',
   cannot_edit_self:'Non puoi modificare il tuo stesso account admin da qui', not_an_admin:'Non è un admin',
+  stage_name_taken:"Nome d'arte già in uso: scegline un altro",
+  calendar_required:'Inserisci il link del calendario',
+  calendar_invalid:'Calendario non valido o non raggiungibile: controlla il link iCal (deve finire con .ics)',
 };
 const errMsg = e => {
   const base = ERR[e?.message] || 'Errore: ' + (e?.message || 'imprevisto');
@@ -213,38 +216,141 @@ const SHOW_LABEL = Object.fromEntries(SHOW_TYPES);
 function showLabel(v){ return SHOW_LABEL[v] || ''; }
 function showOptions(sel){ return SHOW_TYPES.map(([v,l]) => `<option value="${v}"${sel===v?' selected':''}>${l}</option>`).join(''); }
 
-/* header dinamico stile Airbnb. center = HTML opzionale per l'area di ricerca centrale */
+/* ============================================================
+   DESIGN SYSTEM 2026 — set di icone SVG lineari (Lucide-style, stroke currentColor).
+   icon(name, size, stroke) → markup <svg>. Sostituisce le emoji nelle UI.
+   Il catalogo completo è documentato e reso visibile in /styleguide.html.
+   ============================================================ */
+const ICONS = {
+  search:'<circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.5" y2="16.5"/>',
+  bell:'<path d="M18 8a6 6 0 0 0-12 0c0 7-3 8-3 8h18s-3-1-3-8"/><path d="M10.5 21a1.5 1.5 0 0 0 3 0"/>',
+  heart:'<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1L12 21l7.7-7.5 1.1-1a5.5 5.5 0 0 0 0-7.8z"/>',
+  check:'<polyline points="20 6 9 17 4 12"/>',
+  chevronDown:'<polyline points="6 9 12 15 18 9"/>',
+  chevronRight:'<polyline points="9 18 15 12 9 6"/>',
+  chevronLeft:'<polyline points="15 18 9 12 15 6"/>',
+  arrowRight:'<line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>',
+  plus:'<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
+  x:'<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
+  mic:'<path d="M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M5 10v1a7 7 0 0 0 14 0v-1"/><line x1="12" y1="19" x2="12" y2="22"/>',
+  music:'<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>',
+  speaker:'<path d="M3 11v2a1 1 0 0 0 1 1h2l5 4V6L6 10H4a1 1 0 0 0-1 1z"/><path d="M16 8a5 5 0 0 1 0 8"/>',
+  agency:'<path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="3" y="13" width="4" height="7" rx="1.5"/><rect x="17" y="13" width="4" height="7" rx="1.5"/>',
+  inbox:'<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5 5h14l3 7v6a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1v-6z"/>',
+  grid:'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/>',
+  shield:'<path d="M12 2l8 4v6c0 5-3.5 8-8 10-4.5-2-8-5-8-10V6z"/>',
+  sliders:'<line x1="4" y1="8" x2="20" y2="8"/><circle cx="9" cy="8" r="2.4" fill="var(--panel,#fff)"/><line x1="4" y1="16" x2="20" y2="16"/><circle cx="15" cy="16" r="2.4" fill="var(--panel,#fff)"/>',
+  filter:'<line x1="4" y1="6" x2="20" y2="6"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="10" y1="18" x2="14" y2="18"/>',
+  home:'<path d="M3 12l9-9 9 9"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/>',
+  calendar:'<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/>',
+  pin:'<path d="M12 21s-7-5-7-11a7 7 0 0 1 14 0c0 6-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/>',
+  user:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+  logout:'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>',
+  edit:'<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>',
+  trash:'<polyline points="3 6 21 6"/><path d="M8 6V4h8v2M6 6l1 14h10l1-14"/>',
+  eye:'<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+  eyeOff:'<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/><line x1="3" y1="3" x2="21" y2="21"/>',
+  mail:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>',
+  lock:'<rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>',
+  play:'<polygon points="9 7 18 12 9 17"/>',
+  refresh:'<polyline points="23 4 23 10 17 10"/><path d="M20.5 15a9 9 0 1 1-2-9.5L23 10"/>',
+  star:'<polygon points="12 3 14.9 9 21.5 9.7 16.5 14.2 18 20.8 12 17.3 6 20.8 7.5 14.2 2.5 9.7 9.1 9"/>',
+  wave:'<path d="M2 12h4l3-9 4 18 3-9h4"/>',
+  key:'<circle cx="8" cy="15" r="5"/><path d="M11.5 11.5 21 2M17 6l3 3M15 8l2 2"/>',
+  globe:'<circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/>',
+  disc:'<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/>',
+  zap:'<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',
+  euro:'<path d="M17 5.5A7.5 7.5 0 0 0 6.6 8M17 18.5A7.5 7.5 0 0 1 6.6 16M3 10.5h9M3 13.5h8"/>',
+  clock:'<circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/>',
+  send:'<line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>',
+  message:'<path d="M21 12a8 8 0 0 1-8 8H4l2.5-3A8 8 0 1 1 21 12z"/>',
+};
+function icon(name, size = 18, stroke = 1.75) {
+  const p = ICONS[name]; if (!p) return '';
+  return `<svg class="ic-svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${stroke}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
+}
+/* inietta le icone negli elementi statici marcati con data-ic="nome" (data-ic-size opzionale) */
+function injectIcons(root = document) {
+  root.querySelectorAll('[data-ic]').forEach(el => {
+    if (!el.querySelector('.ic-svg')) el.insertAdjacentHTML('afterbegin', icon(el.dataset.ic, +(el.dataset.icSize || 17), +(el.dataset.icStroke || 1.75)));
+  });
+}
+/* icona SVG per genere musicale (sostituisce le emoji di GENRE_ICONS nelle UI nuove) */
+const GENRE_SVG = {
+  pop:'mic', rock:'music', indie:'agency', cantautore:'wave', 'rap-hiphop':'mic', trap:'disc',
+  elettronica:'sliders', 'house-techno':'speaker', jazz:'music', blues:'music', 'funk-soul':'wave',
+  reggae:'globe', folk:'music', metal:'zap', punk:'zap', classica:'music',
+  'tributo-cover':'wave', 'dance-commerciale':'disc', world:'globe', hard:'star', format:'grid'
+};
+function genreIcon(slug, size = 24, stroke = 1.6) { return icon(GENRE_SVG[slug] || 'music', size, stroke); }
+
+/* iniziali + colore stabile per gli avatar utente (menu header, shell admin) */
+function avatarInitials(name) {
+  const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return '·';
+  return (parts[0][0] + (parts[1] ? parts[1][0] : '')).toUpperCase();
+}
+const AVATAR_COLORS = ['#0d9488','#7c3aed','#d52454','#2563eb','#ea580c','#059669','#c026d3'];
+function avatarColor(name) {
+  let h = 0; const s = String(name || '');
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+  return AVATAR_COLORS[h % AVATAR_COLORS.length];
+}
+function shortName(name, max = 22) { const n = String(name || ''); return n.length > max ? n.slice(0, max - 1) + '…' : n; }
+
+function toggleUserMenu(e) { e.stopPropagation(); e.currentTarget.parentNode.classList.toggle('open'); }
+document.addEventListener('click', () => document.querySelectorAll('.usermenu.open').forEach(m => m.classList.remove('open')));
+
+/* menu utente header: pill con avatar + tendina (voci ruolo + Account + Esci) */
+function navUser(u, items) {
+  const name = u.display_name || u.email || 'Account';
+  const menu = [...items, ['__logout__', 'Esci', 'logout']].map(([href, label, ic]) =>
+    href === '__logout__'
+      ? `<button type="button" class="menu-item" onclick="logout()">${icon(ic, 16)}<span>${label}</span></button>`
+      : `<a class="menu-item" href="${href}">${icon(ic, 16)}<span>${label}</span></a>`).join('');
+  return `<div class="usermenu">
+    <button type="button" class="nav-avatar" onclick="toggleUserMenu(event)">
+      <span class="avatar" style="background:${avatarColor(name)}">${esc(avatarInitials(name))}</span>
+      <span class="nav-avatar-name">${esc(shortName(name))}</span>
+      ${icon('chevronDown', 15)}
+    </button>
+    <div class="menu-pop">${menu}</div>
+  </div>`;
+}
+
+/* header dinamico: link testuali con stato attivo + campana + menu utente con avatar */
 async function renderNav(center = '') {
   const el = document.getElementById('nav'); if (!el) return;
   const me = await getMe(true);
   const u = me.user;
-  let right;
-  const navic = (icon, label, attrs) => `<${attrs.href?'a':'button'} class="navicon" ${attrs.href?`href="${attrs.href}"`:'type="button"'} ${attrs.onclick?`onclick="${attrs.onclick}"`:''} title="${label}"><span class="ic">${icon}</span>${label}</${attrs.href?'a':'button'}>`;
-  if (u) {
-    const mine = u.role === 'admin'
-      ? navic('🔍','Cerca',{onclick:'openSearchPopup()'}) + navic('🛠️','Admin',{href:'/admin'})
-      : u.role === 'artist'
-      ? navic('👤','Profilo',{href:'/profilo.html'}) + navic('📨','Richieste',{href:'/richieste.html'})
-      : u.role === 'management'
-      ? navic('🔍','Cerca',{onclick:'openSearchPopup()'}) + navic('🎧','Roster',{href:'/management.html'}) + navic('📨','Richieste',{href:'/richieste.html'})
-      : navic('🔍','Cerca',{onclick:'openSearchPopup()'}) + navic('📨','Richieste',{href:'/richieste.html'});
-    const accountLink = u.role === 'artist' ? '' : navic('⚙️','Account',{href:'/account.html'});
-    const menuLinks = `${mine}${accountLink}${navic('👋','Esci',{onclick:'logout()'})}`;
-    right = `<div class="nav-actions">${menuLinks}</div>`;
-  } else {
-    right = `
-      <div class="nav-actions">
-        ${navic('🔍','Cerca',{onclick:'openSearchPopup()'})}
-        ${navic('🔑','Accedi',{href:'/accedi.html'})}
-        ${navic('📝','Registrati',{href:'/registrati.html'})}
-      </div>`;
+  const path = location.pathname.replace(/\/index\.html$/, '/');
+  const on = (pfx) => pfx === '/' ? (path === '/' ) : path.startsWith(pfx);
+  const link = (href, label, pfx) => `<a class="nav-link${on(pfx)?' on':''}" href="${href}">${label}</a>`;
+
+  let links = '', right = '';
+  if (!u) {
+    links = link('/', 'Cerca artisti', '/') + link('/mappa.html', 'Mappa', '/mappa') + link('/calendario.html', 'Calendario', '/calendario');
+    right = `<a class="nav-link" href="/accedi.html">Accedi</a><a class="btn dark sm" href="/registrati.html">Registrati</a>`;
+  } else if (u.role === 'artist') {
+    links = link('/profilo.html', 'Il mio profilo', '/profilo') + link('/richieste.html', 'Le mie richieste', '/richieste');
+    right = navBell() + navUser(u, [['/profilo.html', 'Il mio profilo', 'mic'], ['/richieste.html', 'Le mie richieste', 'inbox']]);
+  } else if (u.role === 'admin') {
+    links = link('/', 'Cerca artisti', '/') + link('/admin', 'Admin', '/admin');
+    right = navBell() + navUser(u, [['/admin', 'Pannello admin', 'shield'], ['/account.html', 'Account', 'user']]);
+  } else { // promoter / management
+    links = link('/', 'Cerca artisti', '/') + link('/mappa.html', 'Mappa', '/mappa') + link('/calendario.html', 'Calendario', '/calendario')
+          + link('/preferiti.html', 'Preferiti', '/preferiti') + link('/richieste.html', 'Le mie richieste', '/richieste');
+    const extra = u.role === 'management' ? [['/management.html', 'Il mio roster', 'agency']] : [];
+    right = navBell() + navUser(u, [...extra, ['/preferiti.html', 'Preferiti', 'heart'], ['/account.html', 'Account', 'user']]);
   }
-  el.innerHTML = `<div class="container">
+
+  el.innerHTML = `<div class="container nav-inner">
     <a class="logo" href="/">Booking<span style="color:var(--txt)"> Roster</span></a>
-    <div id="navCenter" style="flex:1;display:flex;justify-content:center">${center}</div>
-    <span></span>${right}
+    <nav class="nav-links">${links}</nav>
+    <div class="nav-right">${right}</div>
   </div>`;
   renderFooter();
+  if (u) refreshNotifDot();
 }
 
 /* footer condiviso (dati SHADE-OFF S.R.L.S.) */
@@ -340,6 +446,80 @@ function renderArtistPins(map, layer, list, opts = {}) {
 
 async function logout() { await api('me.php?logout=1', {method:'POST'}); location.href = '/'; }
 
+/* ---- Preferiti (promoter/management): pulsante cuore condiviso da index, artista, preferiti ----
+   favBtnHtml() genera il bottone; toggleFav() chiama l'API e aggiorna lo stato visivo.
+   Su onclick usa event.stopPropagation() perché spesso è dentro una card cliccabile. */
+function favBtnHtml(artistId, isFav, cls = '') {
+  return `<button type="button" class="favbtn${isFav ? ' on' : ''} ${cls}" data-aid="${artistId}"
+    aria-pressed="${isFav ? 'true' : 'false'}" title="${isFav ? 'Rimuovi dai preferiti' : 'Aggiungi ai preferiti'}"
+    onclick="event.stopPropagation();toggleFav(this)">${icon('heart', 20, 1.8)}</button>`;
+}
+async function toggleFav(btn) {
+  const id = +btn.dataset.aid;
+  const on = !btn.classList.contains('on');
+  btn.disabled = true;
+  try {
+    const r = await api('favorites-toggle.php', {method:'POST', body:{artist_user_id:id, on}});
+    btn.classList.toggle('on', r.favorite);
+    btn.setAttribute('aria-pressed', r.favorite ? 'true' : 'false');
+    btn.title = r.favorite ? 'Rimuovi dai preferiti' : 'Aggiungi ai preferiti';
+    toast(r.favorite ? 'Aggiunto ai preferiti ♥' : 'Rimosso dai preferiti');
+    document.dispatchEvent(new CustomEvent('favchange', {detail:{artistId:id, favorite:r.favorite}}));
+  } catch(err) {
+    if (err.message === 'not_authenticated') { location.href = '/accedi.html'; return; }
+    toast(errMsg(err), true);
+  } finally { btn.disabled = false; }
+}
+
+/* ---- Feed notifiche (campana header): eventi da notifications.php, "visto" in localStorage ---- */
+const NOTIF_SEEN_KEY = 'roster_notif_seen';
+let _notifs = null;
+async function loadNotifs(force = false) {
+  if (_notifs && !force) return _notifs;
+  try { _notifs = (await api('notifications.php')).notifications || []; }
+  catch (e) { _notifs = []; }
+  return _notifs;
+}
+function notifTimeAgo(ts) {
+  const d = new Date((ts || '').replace(' ', 'T')); if (isNaN(d)) return '';
+  const s = (Date.now() - d.getTime()) / 1000;
+  if (s < 3600) return Math.max(1, Math.floor(s / 60)) + ' min fa';
+  if (s < 86400) return Math.floor(s / 3600) + ' h fa';
+  return d.toLocaleDateString('it-IT');
+}
+async function refreshNotifDot() {
+  const dot = document.getElementById('notifDot'); if (!dot) return;
+  const list = await loadNotifs();
+  const seen = +(localStorage.getItem(NOTIF_SEEN_KEY) || 0);
+  const hasNew = list.some(n => new Date((n.ts || '').replace(' ', 'T')).getTime() > seen);
+  dot.style.display = hasNew ? '' : 'none';
+}
+async function toggleNotif(e) {
+  e.stopPropagation();
+  const wrap = e.currentTarget.parentNode;
+  const was = wrap.classList.contains('open');
+  document.querySelectorAll('.usermenu.open').forEach(m => m.classList.remove('open'));
+  if (was) return;
+  wrap.classList.add('open');
+  const pop = document.getElementById('notifPop');
+  pop.innerHTML = '<div class="notif-empty">Carico…</div>';
+  const list = await loadNotifs(true);
+  localStorage.setItem(NOTIF_SEEN_KEY, String(Date.now()));
+  const dot = document.getElementById('notifDot'); if (dot) dot.style.display = 'none';
+  pop.innerHTML = list.length ? list.map(n => `
+    <a class="notif-item" href="${esc(n.href || '/richieste.html')}">
+      <span class="notif-ic">${icon(n.icon || 'inbox', 16)}</span>
+      <span class="notif-txt"><b>${esc(n.title)}</b>${n.meta ? `<span>${esc(n.meta)}</span>` : ''}</span>
+      <span class="notif-when">${notifTimeAgo(n.ts)}</span>
+    </a>`).join('') : '<div class="notif-empty">Nessuna notifica per ora.</div>';
+}
+function navBell() {
+  return `<div class="usermenu notifwrap">
+    <button type="button" class="nav-bell" onclick="toggleNotif(event)" title="Notifiche">${icon('bell', 18)}<span class="notif-dot" id="notifDot" style="display:none"></span></button>
+    <div class="menu-pop notif-pop" id="notifPop"></div>
+  </div>`;
+}
+
 /* ---- Popup "Cerca" (header, utenti non loggati): stessi filtri che vedrebbero su "/" ---- */
 const SP_BUDGET_MAX_DEFAULT = 3000;   // fallback se il roster non ha ancora nessun cachet impostato
 let _searchGenres;
@@ -387,7 +567,7 @@ async function openSearchPopup(){
             </div>
           </div>
           <div class="field"><label>Generi</label>
-            <div class="chips">${genres.map(g => `<span class="chip" data-slug="${esc(g.slug)}" onclick="pickSearchGenre(this)">${GENRE_ICONS[g.slug] || '🎵'} ${esc(g.name)}</span>`).join('')}</div>
+            <div class="chips">${genres.map(g => `<span class="chip chip-ic" data-slug="${esc(g.slug)}" onclick="pickSearchGenre(this)">${genreIcon(g.slug, 14, 1.8)} ${esc(g.name)}</span>`).join('')}</div>
           </div>
           <div class="field"><label>Tipo di show</label>
             <div class="chips">${SHOW_TYPES.map(([v, l]) => `<span class="chip" data-v="${v}" onclick="pickSearchShow(this)">${esc(l)}</span>`).join('')}</div>

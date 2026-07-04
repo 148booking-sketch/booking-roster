@@ -15,19 +15,31 @@
 .rq-card.ritirata{border-left-color:#92700f}
 .rq-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
 .rq-who{display:flex;gap:12px;align-items:center;min-width:0}
-.rq-ico{width:46px;height:46px;border-radius:12px;background:var(--panel2);display:flex;align-items:center;justify-content:center;font-size:22px;flex:none}
+.rq-ava{width:46px;height:46px;border-radius:12px;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;flex:none}
 .rq-name{font-weight:700;font-size:17px;font-family:var(--f-display);line-height:1.2}
 .rq-sent{font-size:12px;color:var(--muted);margin-top:3px}
 .rq-badge{font-size:12px;font-weight:700;padding:5px 12px;border-radius:20px;white-space:nowrap;flex:none}
 .rq-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
 .rq-box{border:1px solid var(--line);border-radius:12px;padding:10px 14px;background:var(--panel2)}
-.rq-box-l{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
+.rq-box-l{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;display:flex;align-items:center;gap:5px}
 .rq-box-v{font-size:17px;font-weight:700;margin-top:3px;font-family:var(--f-display)}
 .rq-box-v.money{color:#0a7d38}
 .rq-msg{margin-top:14px;color:#444;background:var(--panel2);border-radius:10px;padding:11px 14px;position:relative}
 .rq-msg::before{content:'“';font-size:26px;color:var(--muted);line-height:0;position:relative;top:6px;margin-right:2px}
-.rq-actions{display:flex;gap:10px;margin-top:14px}
+.rq-actions{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
 @media(max-width:520px){.rq-grid{grid-template-columns:1fr}}
+/* thread messaggi */
+.rq-thread{margin-top:14px;border-top:1px solid var(--line2);padding-top:12px}
+.th-list{display:flex;flex-direction:column;gap:8px;max-height:280px;overflow-y:auto;padding-right:4px}
+.th-msg{max-width:82%;padding:9px 13px;border-radius:14px;font-size:14px;line-height:1.45;white-space:pre-line;word-break:break-word}
+.th-msg .th-meta{display:block;font-size:11px;color:var(--muted);margin-top:3px}
+.th-msg.other{align-self:flex-start;background:var(--panel2);border-bottom-left-radius:5px}
+.th-msg.mine{align-self:flex-end;background:#1a1c22;color:#fff;border-bottom-right-radius:5px}
+.th-msg.mine .th-meta{color:#9a9aa2}
+.th-form{display:flex;gap:8px;margin-top:10px}
+.th-form input{flex:1;min-width:0}
+.th-form .btn{padding:11px 14px}
+.th-empty{color:var(--muted);font-size:13px;text-align:center;padding:8px 0}
 </style>
 </head>
 <body>
@@ -44,8 +56,8 @@
 <script>
 let role;
 const RQST = {
-  inviata:['📨 Inviata','#2563eb'], vista:['👀 Vista','#2563eb'],
-  accettata:['✅ Accettata','#0a7d38'], rifiutata:['❌ Rifiutata','#c0395e'], ritirata:['↩︎ Ritirata','#92700f']
+  inviata:['Inviata','#2563eb'], vista:['Vista','#2563eb'],
+  accettata:['Accettata','#0a7d38'], rifiutata:['Rifiutata','#c0395e'], ritirata:['Ritirata','#92700f']
 };
 const MESI=['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
 const GG=['domenica','lunedì','martedì','mercoledì','giovedì','venerdì','sabato'];
@@ -54,6 +66,8 @@ function fmtLong(s){ const d=parseD(s); if(!d||isNaN(d)) return '—';
   return `${GG[d.getDay()]} ${d.getDate()} ${MESI[d.getMonth()]} ${d.getFullYear()}`; }
 function fmtShort(s){ const d=parseD(s); if(!d||isNaN(d)) return '';
   return `${d.getDate()} ${MESI[d.getMonth()].slice(0,3)} ${d.getFullYear()}`; }
+function fmtTime(s){ const d=parseD(s); if(!d||isNaN(d)) return '';
+  return `${d.getDate()}/${d.getMonth()+1} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; }
 
 async function init(){
   const me = await getMe(true);
@@ -76,17 +90,17 @@ function card(rq){
   const st = RQST[rq.status] || [rq.status,'#666'];
   let actions='';
   if(role==='artist' && ['inviata','vista'].includes(rq.status)){
-    actions = `<div class="rq-actions">
-      <button class="btn primary sm" onclick="respond(${rq.id},'accetta')">Accetta</button>
-      <button class="btn ghost sm" onclick="respond(${rq.id},'rifiuta')">Rifiuta</button></div>`;
+    actions = `
+      <button class="btn primary sm" onclick="respond(${rq.id},'accetta')">${icon('check',15,2.2)} Accetta</button>
+      <button class="btn ghost sm" onclick="respond(${rq.id},'rifiuta')">Rifiuta</button>`;
   }
   if((role==='promoter'||role==='management') && ['inviata','vista'].includes(rq.status)){
-    actions = `<div class="rq-actions"><button class="btn ghost sm" onclick="respond(${rq.id},'ritira')">Ritira richiesta</button></div>`;
+    actions = `<button class="btn ghost sm" onclick="respond(${rq.id},'ritira')">Ritira richiesta</button>`;
   }
   return `<div class="rq-card ${esc(rq.status)}">
     <div class="rq-top">
       <div class="rq-who">
-        <span class="rq-ico">${role==='artist'?'📣':'🎤'}</span>
+        <span class="rq-ava" style="background:${avatarColor(who)}">${esc(avatarInitials(who))}</span>
         <div>
           <div class="rq-name">${esc(who)}</div>
           <div class="rq-sent">Richiesta del ${fmtShort(rq.created_at)}${rq.responded_at?` · risposta ${fmtShort(rq.responded_at)}`:''}</div>
@@ -95,18 +109,62 @@ function card(rq){
       <span class="rq-badge" style="background:${st[1]}18;color:${st[1]}">${st[0]}</span>
     </div>
     <div class="rq-grid">
-      <div class="rq-box"><div class="rq-box-l">📅 Data evento</div>
+      <div class="rq-box"><div class="rq-box-l">${icon('calendar',13)} Data evento</div>
         <div class="rq-box-v">${rq.event_date?fmtLong(rq.event_date):'Da concordare'}</div></div>
-      <div class="rq-box"><div class="rq-box-l">💶 Offerta economica</div>
+      <div class="rq-box"><div class="rq-box-l">${icon('euro',13)} Offerta economica</div>
         <div class="rq-box-v money">${rq.proposed_fee!=null?eur(rq.proposed_fee):'Da concordare'}</div></div>
     </div>
     ${rq.message?`<div class="rq-msg">${esc(rq.message)}</div>`:''}
-    ${actions}
+    <div class="rq-actions">
+      ${actions}
+      <button class="btn ghost sm" id="thBtn-${rq.id}" onclick="toggleThread(${rq.id})">${icon('message',15)} Messaggi</button>
+    </div>
+    <div class="rq-thread" id="th-${rq.id}" style="display:none">
+      <div class="th-list" id="thList-${rq.id}"><div class="th-empty">Carico…</div></div>
+      <form class="th-form" onsubmit="return sendMsg(event,${rq.id})">
+        <input id="thInput-${rq.id}" placeholder="Scrivi un messaggio…" maxlength="2000" autocomplete="off">
+        <button class="btn primary sm" title="Invia">${icon('send',16,2)}</button>
+      </form>
+    </div>
   </div>`;
 }
 async function respond(id, action){
   try{ await api('booking-respond.php',{method:'POST',body:{request_id:id,action}}); toast('Fatto ✓'); load(); }
   catch(err){ toast(errMsg(err),true); }
+}
+
+/* ---- Thread messaggi ---- */
+async function toggleThread(id){
+  const box=document.getElementById('th-'+id);
+  const open = box.style.display==='none';
+  box.style.display = open?'':'none';
+  if(open) loadThread(id);
+}
+async function loadThread(id){
+  const el=document.getElementById('thList-'+id);
+  try{
+    const r=await api('booking-messages.php?request_id='+id);
+    const M=r.messages||[];
+    el.innerHTML = M.length ? M.map(m=>`
+      <div class="th-msg ${m.mine?'mine':'other'}">${esc(m.body)}
+        <span class="th-meta">${m.mine?'Tu':esc(m.sender_name||'')} · ${fmtTime(m.created_at)}</span>
+      </div>`).join('') : '<div class="th-empty">Nessun messaggio: scrivi il primo!</div>';
+    el.scrollTop = el.scrollHeight;
+  }catch(err){ el.innerHTML='<div class="th-empty">'+esc(errMsg(err))+'</div>'; }
+}
+async function sendMsg(e, id){
+  e.preventDefault();
+  const inp=document.getElementById('thInput-'+id);
+  const text=inp.value.trim();
+  if(!text) return false;
+  inp.disabled=true;
+  try{
+    await api('booking-messages.php',{method:'POST',body:{request_id:id, body:text}});
+    inp.value='';
+    await loadThread(id);
+  }catch(err){ toast(errMsg(err),true); }
+  inp.disabled=false; inp.focus();
+  return false;
 }
 init();
 </script>

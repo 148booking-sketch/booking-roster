@@ -73,6 +73,8 @@ $a['has_promo'] = ($a['cachet_promo'] !== null && (int)$a['cachet_promo'] > 0
 $viewer = current_user();
 $a['locked']       = !viewer_can_see_prices($viewer, $uid);
 $a['can_contact']  = viewer_can_contact($viewer) || ($viewer && (int) $viewer['id'] === $uid);
+$a['can_favorite'] = viewer_can_favorite($viewer);
+$a['is_favorite']  = in_array($uid, favorite_artist_ids($viewer), true);
 $a['pending_verification'] = (bool) ($viewer && in_array($viewer['role'], ['promoter', 'management'], true) && !promoter_is_verified((int) $viewer['id']));
 if ($a['locked']) {
   foreach (['cachet_min','cachet_max','cachet_trattabile','cachet_promo','promo_until','rimborso_tipo','rimborso_km','rimborso_forfait','tech_sheet_url'] as $k) {

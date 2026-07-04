@@ -72,6 +72,21 @@ function calendar_busy_dates(string $icsUrl, int $days = 120): array {
   return $dates;
 }
 
+/**
+ * True se l'URL è un calendario iCal raggiungibile e valido (risponde 200 e contiene
+ * BEGIN:VCALENDAR). Best-effort, una sola richiesta HTTP. Accetta anche webcal://.
+ * Usato dal wizard di registrazione artista (calendar-check.php) e da register.php per
+ * impedire di proseguire con un link calendario non valido.
+ */
+function calendar_is_valid(string $icsUrl): bool {
+  $u = trim($icsUrl);
+  if ($u === '') return false;
+  $u = preg_replace('#^webcal://#i', 'https://', $u);
+  if (!preg_match('#^https?://#i', $u)) return false;
+  $r = http_get($u, 12);
+  return $r['code'] === 200 && stripos($r['body'], 'BEGIN:VCALENDAR') !== false;
+}
+
 /** Aggiorna e salva le date occupate di un artista. */
 function refresh_artist_calendar(int $userId, ?string $icsUrl): array {
   $busy = ($icsUrl && trim($icsUrl) !== '') ? calendar_busy_dates(trim($icsUrl)) : [];
