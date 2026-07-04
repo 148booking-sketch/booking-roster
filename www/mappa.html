@@ -13,6 +13,9 @@
 .ms-head{padding:16px 20px;border-bottom:1px solid var(--line2)}
 .ms-head .t{font:700 16px var(--f-display)}
 .ms-head .s{font-size:12.5px;color:var(--muted)}
+.ms-search{display:flex;align-items:center;background:#f2f2f2;border-radius:9px;padding:2px 12px;gap:8px;margin-top:12px}
+.ms-search input{flex:1;min-width:0;border:0;background:none;padding:8px 0;font-size:13px;outline:0;font-family:inherit}
+.ms-clear{border:0;background:none;color:var(--muted);cursor:pointer;font-size:13px;padding:2px}
 .ms-list{flex:1;overflow:auto;padding:12px;display:flex;flex-direction:column;gap:8px}
 .ms-item{display:flex;gap:12px;padding:10px;border:1px solid var(--line2);border-radius:12px;cursor:pointer;background:#fff;text-align:left;font-family:inherit}
 .ms-item:hover,.ms-item.on{border-color:var(--brand);box-shadow:0 2px 8px rgba(0,0,0,.06)}
@@ -48,6 +51,14 @@
     <div class="ms-head">
       <div class="t" id="msTitle">Artisti sulla mappa</div>
       <div class="s">Italia ed estero · clicca un artista per trovarlo sulla mappa</div>
+      <div class="ms-search">
+        <span data-ic="search" data-ic-size="15" data-ic-stroke="1.9" style="color:var(--muted)"></span>
+        <input id="msQ" list="msPlaces" placeholder="Regione, città o estero…" autocomplete="off"
+          oninput="applyPlaceFilter()" onchange="applyPlaceFilter()">
+        <button type="button" class="ms-clear" id="msClear" style="display:none" onclick="clearPlaceFilter()">✕</button>
+      </div>
+      <datalist id="msPlaces"></datalist>
+      <button type="button" class="btn dark sm" style="width:100%;margin-top:9px" onclick="clearPlaceFilter()">Tutti gli artisti</button>
     </div>
     <div class="ms-list" id="msList"><div class="empty">Caricamento…</div></div>
   </aside>
@@ -57,7 +68,11 @@
 <script src="/assets/api.js"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-let MAP=null, DATA=[], LOCKED=false;
+let MAP=null, DATA=[], VIEW=[], LOCKED=false, LAYER=null;
+/* sigla provincia → regione (per il filtro "regione" senza campo dedicato in DB) */
+const PR_REG={AG:'Sicilia',AL:'Piemonte',AN:'Marche',AO:'Valle d\'Aosta',AR:'Toscana',AP:'Marche',AT:'Piemonte',AV:'Campania',BA:'Puglia',BT:'Puglia',BL:'Veneto',BN:'Campania',BG:'Lombardia',BI:'Piemonte',BO:'Emilia-Romagna',BZ:'Trentino-Alto Adige',BS:'Lombardia',BR:'Puglia',CA:'Sardegna',CL:'Sicilia',CB:'Molise',CE:'Campania',CT:'Sicilia',CZ:'Calabria',CH:'Abruzzo',CO:'Lombardia',CS:'Calabria',CR:'Lombardia',KR:'Calabria',CN:'Piemonte',EN:'Sicilia',FM:'Marche',FE:'Emilia-Romagna',FI:'Toscana',FG:'Puglia',FC:'Emilia-Romagna',FR:'Lazio',GE:'Liguria',GO:'Friuli-Venezia Giulia',GR:'Toscana',IM:'Liguria',IS:'Molise',SP:'Liguria',AQ:'Abruzzo',LT:'Lazio',LE:'Puglia',LC:'Lombardia',LI:'Toscana',LO:'Lombardia',LU:'Toscana',MC:'Marche',MN:'Lombardia',MS:'Toscana',MT:'Basilicata',ME:'Sicilia',MI:'Lombardia',MO:'Emilia-Romagna',MB:'Lombardia',NA:'Campania',NO:'Piemonte',NU:'Sardegna',OR:'Sardegna',PD:'Veneto',PA:'Sicilia',PR:'Emilia-Romagna',PV:'Lombardia',PG:'Umbria',PU:'Marche',PE:'Abruzzo',PC:'Emilia-Romagna',PI:'Toscana',PT:'Toscana',PN:'Friuli-Venezia Giulia',PZ:'Basilicata',PO:'Toscana',RG:'Sicilia',RA:'Emilia-Romagna',RC:'Calabria',RE:'Emilia-Romagna',RI:'Lazio',RN:'Emilia-Romagna',RM:'Lazio',RO:'Veneto',SA:'Campania',SS:'Sardegna',SV:'Liguria',SI:'Toscana',SR:'Sicilia',SO:'Lombardia',SU:'Sardegna',TA:'Puglia',TE:'Abruzzo',TR:'Umbria',TO:'Piemonte',TP:'Sicilia',TN:'Trentino-Alto Adige',TV:'Veneto',TS:'Friuli-Venezia Giulia',UD:'Friuli-Venezia Giulia',VA:'Lombardia',VE:'Veneto',VB:'Piemonte',VC:'Piemonte',VR:'Veneto',VV:'Calabria',VI:'Veneto',VT:'Lazio'};
+function regionOf(a){ return a.provincia ? (PR_REG[String(a.provincia).toUpperCase()]||null) : null; }
+function isForeign(a){ return !a.provincia; }   // niente sigla provincia = città estera
 function cachet(a){ const v=a.cachet_min??a.cachet_max;
   if(LOCKED) return 'Prezzo riservato';
   if(v==null) return 'Trattativa riservata'; if(v===0) return 'Senza impegno'; return 'da '+eur(v); }
@@ -68,12 +83,16 @@ async function init(){
     const r=await api('artists-map.php');
     DATA=r.artists||[]; LOCKED=!!r.locked;
   }catch(e){ toast('Errore caricamento mappa',true); return; }
+  VIEW=DATA;
+  buildPlaceSuggestions();
   renderList();
   initGatedMap('map', initArtistMap);
+  injectIcons();
 }
 function renderList(){
-  document.getElementById('msTitle').textContent = DATA.length+' artist'+(DATA.length===1?'a':'i')+' sulla mappa';
-  document.getElementById('msList').innerHTML = DATA.length ? DATA.map((a,i)=>{
+  const tot=DATA.length, n=VIEW.length;
+  document.getElementById('msTitle').textContent = (n===tot? n : n+' / '+tot)+' artist'+(n===1?'a':'i')+' sulla mappa';
+  document.getElementById('msList').innerHTML = VIEW.length ? VIEW.map((a,i)=>{
     const pic=a.photo_url?`<img src="${esc(a.photo_url)}" referrerpolicy="no-referrer" alt="">`:esc(avatarInitials(a.stage_name||'A'));
     const meta=[showLabel(a.formazione),a.comune].filter(Boolean).join(' · ');
     return `<button class="ms-item" id="ms-${i}" onclick="focusArtist(${i})">
@@ -84,12 +103,44 @@ function renderList(){
         <span class="ms-pr" style="display:block">${cachet(a)}</span>
       </span>
     </button>`;
-  }).join('') : '<div class="empty"><span class="et">Nessun artista geolocalizzato</span></div>';
+  }).join('') : '<div class="empty"><span class="et">Nessun artista qui</span>Prova con un altro luogo o torna a Tutti gli artisti.</div>';
+}
+
+/* ---- filtro unico per luogo: regioni + città italiane + città estere + "Estero" ---- */
+function buildPlaceSuggestions(){
+  const sug=new Set();
+  DATA.forEach(a=>{
+    if(a.comune) sug.add(a.comune);
+    const r=regionOf(a); if(r) sug.add(r);
+  });
+  if(DATA.some(isForeign)) sug.add('Estero');
+  document.getElementById('msPlaces').innerHTML =
+    [...sug].sort((a,b)=>a.localeCompare(b,'it')).map(s=>`<option value="${esc(s)}">`).join('');
+}
+function applyPlaceFilter(){
+  const q=(document.getElementById('msQ').value||'').trim().toLowerCase();
+  document.getElementById('msClear').style.display = q?'':'none';
+  if(!q){ VIEW=DATA; renderList(); redrawPins(true); return; }
+  VIEW=DATA.filter(a=>{
+    if(q==='estero') return isForeign(a);
+    const reg=(regionOf(a)||'').toLowerCase();
+    const com=(a.comune||'').toLowerCase();
+    return com.includes(q) || reg===q || reg.startsWith(q);
+  });
+  renderList(); redrawPins(true);
+}
+function clearPlaceFilter(){
+  document.getElementById('msQ').value='';
+  applyPlaceFilter();
+}
+function redrawPins(fit){
+  if(!MAP||!LAYER) return;
+  renderArtistPins(MAP, LAYER, VIEW, {fit:!!fit, locked:LOCKED});
 }
 function focusArtist(i){
   document.querySelectorAll('.ms-item').forEach(x=>x.classList.remove('on'));
   document.getElementById('ms-'+i)?.classList.add('on');
-  const a=DATA[i];
+  const a=VIEW[i];
   if(MAP && a && a.lat!=null){ MAP.setView([+a.lat,+a.lng], 11, {animate:true}); }
 }
 // Caricamento rimandato al consenso cookie per terze parti (la mappa usa riquadri OpenStreetMap/CARTO)
@@ -98,8 +149,8 @@ async function initArtistMap(){
   L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{
     attribution:'&copy; OpenStreetMap &copy; CARTO', maxZoom:19}).addTo(MAP);
   if(!DATA.length) return;
-  const layer = L.layerGroup().addTo(MAP);
-  renderArtistPins(MAP, layer, DATA, {fit:true, locked:LOCKED});
+  LAYER = L.layerGroup().addTo(MAP);
+  renderArtistPins(MAP, LAYER, VIEW, {fit:true, locked:LOCKED});
 }
 init();
 </script>

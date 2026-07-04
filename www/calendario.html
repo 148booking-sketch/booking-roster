@@ -18,17 +18,17 @@
 .avz-legend{display:flex;gap:16px;font-size:12px;color:var(--muted);margin-bottom:14px}
 .avz-legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:middle}
 .avz-box{background:#fff;border:1px solid var(--line2);border-radius:16px;padding:16px 18px;overflow-x:auto}
-.avz-grid{display:grid;grid-template-columns:230px repeat(10,minmax(52px,1fr));gap:6px;align-items:center;min-width:820px}
-.avz-dow{text-align:center;font:700 11px var(--f-body);color:#9a9aa2}
-.avz-dow b{display:block;color:#222;font-size:13px}
+.avz-grid{display:grid;grid-template-columns:190px repeat(14,minmax(32px,1fr));gap:5px;align-items:center;min-width:760px}
+.avz-dow{text-align:center;font:700 10px var(--f-body);color:#9a9aa2}
+.avz-dow b{display:block;color:#222;font-size:12.5px}
 .avz-dow.today b{color:var(--brand)}
 .avz-artist{display:flex;align-items:center;gap:9px;min-width:0;cursor:pointer}
 .avz-artist:hover .nm{text-decoration:underline}
-.avz-ava{width:32px;height:32px;border-radius:50%;overflow:hidden;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;flex:none}
+.avz-ava{width:28px;height:28px;border-radius:50%;overflow:hidden;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;flex:none}
 .avz-ava img{width:100%;height:100%;object-fit:cover}
-.avz-artist .nm{font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.avz-artist .nm{font-weight:600;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .avz-artist .mt{font-size:11px;color:var(--muted)}
-.avz-cell{height:26px;border-radius:6px;background:#eafaf0;cursor:pointer}
+.avz-cell{height:24px;border-radius:6px;background:#eafaf0;cursor:pointer}
 .avz-cell.busy{background:#fbeaef}
 .avz-cell:hover{outline:2px solid var(--brand);outline-offset:-1px}
 .avz-sep{grid-column:1/-1;height:1px;background:#f2f2f2}
@@ -42,8 +42,8 @@
     <h1>Disponibilità artisti</h1>
     <div class="avz-nav">
       <span class="lbl" id="avzLbl"></span>
-      <button id="avzPrev" onclick="nav(-10)">‹</button>
-      <button onclick="nav(10)">›</button>
+      <button id="avzPrev" onclick="nav(-1)">‹</button>
+      <button onclick="nav(1)">›</button>
     </div>
   </div>
   <div class="avz-legend">
@@ -58,19 +58,20 @@
 <script>
 const MESI=['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','nov','dic'];
 const GG=['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
-let ART=[], OFFSET=0;   // OFFSET = giorni da oggi all'inizio della finestra (finestre da 10 giorni)
+let ART=[], OFFSET=0;   // OFFSET = giorni da oggi all'inizio della finestra (finestre da 14 giorni)
+const NDAYS=14;
 
 function isoOf(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 function goArtist(slug){ if(slug) location.href='/'+slug; }
-function nav(delta){ OFFSET=Math.max(0, OFFSET+delta); draw(); }
+function nav(delta){ OFFSET=Math.max(0, OFFSET+delta*NDAYS); draw(); }
 
 function draw(){
   document.getElementById('avzPrev').disabled = OFFSET===0;
   const days=[]; const base=new Date(); base.setHours(0,0,0,0); base.setDate(base.getDate()+OFFSET);
-  for(let i=0;i<10;i++){ const d=new Date(base); d.setDate(base.getDate()+i); days.push(d); }
+  for(let i=0;i<NDAYS;i++){ const d=new Date(base); d.setDate(base.getDate()+i); days.push(d); }
   const todayIso=isoOf(new Date());
   document.getElementById('avzLbl').textContent =
-    `${days[0].getDate()} ${MESI[days[0].getMonth()]} – ${days[9].getDate()} ${MESI[days[9].getMonth()]} ${days[9].getFullYear()}`;
+    `${days[0].getDate()} ${MESI[days[0].getMonth()]} – ${days[NDAYS-1].getDate()} ${MESI[days[NDAYS-1].getMonth()]} ${days[NDAYS-1].getFullYear()}`;
 
   let html='<div></div>'+days.map(d=>{
     const iso=isoOf(d);

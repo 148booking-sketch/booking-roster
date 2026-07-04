@@ -7,6 +7,31 @@
 <title>Il tuo roster · Booking Roster</title>
 <link rel="stylesheet" href="/assets/style.css">
 <style>
+/* tabella densa roster (design 4b) — stesse classi dt-* dell'admin */
+.dtable{border:1px solid var(--line2);border-radius:14px;overflow:hidden;background:#fff}
+.dt-head{display:grid;gap:12px;padding:9px 18px;background:#f7f7f7;border-bottom:1px solid var(--line2);font:700 10.5px var(--f-body);text-transform:uppercase;letter-spacing:.05em;color:#9a9aa2}
+.dt-row{display:grid;gap:12px;align-items:center;padding:11px 18px;border-bottom:1px solid #f2f2f2}
+.dt-row:last-child{border-bottom:0}
+.dt-row:hover{background:#fafafa}
+.cols-rost{grid-template-columns:1fr 168px 120px 116px 172px}
+.dt-who{display:flex;align-items:center;gap:11px;min-width:0}
+.dt-ava{width:36px;height:36px;border-radius:50%;overflow:hidden;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex:none}
+.dt-ava img{width:100%;height:100%;object-fit:cover}
+.dt-who .nm{font-weight:600;font-size:14px;display:flex;align-items:center;gap:5px;min-width:0}
+.dt-who .mt{font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dt-meta{font-size:12.5px;color:#444}
+.dt-meta div{color:var(--muted)}
+.dt-actions{display:flex;justify-content:flex-end;gap:6px}
+.dt-ibtn{width:32px;height:32px;border-radius:8px;border:1px solid var(--line);background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#444}
+.dt-ibtn:hover{border-color:var(--txt)}
+.dt-ibtn.danger{color:#c0395e;border-color:#f2c9d5}
+@media(max-width:820px){
+  .dt-head{display:none}
+  .dt-row{grid-template-columns:1fr !important;gap:8px}
+  .dt-actions{justify-content:flex-start}
+}
+</style>
+<style>
 .roster{display:grid;gap:12px;margin-top:16px}
 .rost-row{display:flex;align-items:center;gap:14px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 14px}
 .rost-pic{width:52px;height:52px;border-radius:10px;background:#f1f1f3;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:22px;color:#3a3f4d;overflow:hidden;flex-shrink:0}
@@ -60,8 +85,18 @@
           <option value="online">Online</option>
           <option value="review">In revisione</option>
         </select>
+        <select id="rq_show" onchange="paintRoster()" style="width:auto"><option value="">Tipo di show</option></select>
+        <select id="rq_sort" onchange="paintRoster()" style="width:auto;margin-left:auto">
+          <option value="az">Nome A→Z</option>
+          <option value="za">Nome Z→A</option>
+          <option value="cachet">Cachet ↑</option>
+          <option value="cachet_desc">Cachet ↓</option>
+        </select>
       </div>
-      <div id="roster" class="roster"></div>
+      <div class="dtable">
+        <div class="dt-head cols-rost"><div>Artista</div><div>Tipo · Città</div><div>Cachet</div><div>Stato</div><div style="text-align:right">Azioni</div></div>
+        <div id="roster"></div>
+      </div>
     </div>
 
     <!-- PROFILO AGENZIA -->
@@ -175,20 +210,25 @@ function startNew(){
 
 /* ---- elenco roster ---- */
 function rostRow(a){
+  const nm=a.stage_name||'(senza nome)';
   const pub = a.published==1
     ? '<span class="rqt-st" style="color:#0a7d38;background:#eafaf0">Online</span>'
     : '<span class="rqt-st" style="color:#a5730a;background:#fff7e6">In revisione</span>';
-  const loc = [a.comune, a.provincia].filter(Boolean).join(' · ');
-  const pic = a.photo_url ? `<img src="${esc(a.photo_url)}" alt="" referrerpolicy="no-referrer">` : icon('music',22,1.5);
-  return `<div class="rost-row">
-    <div class="rost-pic">${pic}</div>
-    <div class="rost-main">
-      <b>${esc(a.stage_name||'(senza nome)')}</b>
-      <div class="rost-meta">${pub}${loc?` · ${esc(loc)}`:''}${a.slug?` · <a href="/${esc(a.slug)}" target="_blank" rel="noopener">vedi profilo</a>`:''}</div>
+  const pic = a.photo_url ? `<img src="${esc(a.photo_url)}" alt="" referrerpolicy="no-referrer">` : esc(avatarInitials(nm));
+  const v=a.cachet_min??a.cachet_max;
+  const cachet=v==null?'—':(v==0?'Senza impegno':'da '+eur(v));
+  return `<div class="dt-row cols-rost">
+    <div class="dt-who">
+      <span class="dt-ava" style="background:${avatarColor(nm)}">${pic}</span>
+      <div style="min-width:0"><div class="nm">${esc(nm)}${a.verified==1?'<span class="vchk" title="Verificato">✓</span>':''}</div><div class="mt">${a.slug?'/'+esc(a.slug):''}</div></div>
     </div>
-    <div class="rost-acts">
-      <button type="button" class="btn ghost sm" onclick="editArtist(${a.id})">${icon('edit',14)} Modifica</button>
-      <button type="button" class="btn ghost sm" onclick="delArtist(${a.id},'${esc((a.stage_name||'').replace(/'/g,''))}')">${icon('trash',14)}</button>
+    <div class="dt-meta">${esc(showLabel(a.formazione))}<div>${esc([a.comune,a.provincia].filter(Boolean).join(' '))}</div></div>
+    <div style="font-size:13px;font-weight:600">${cachet}</div>
+    <div>${pub}</div>
+    <div class="dt-actions">
+      <button type="button" class="dt-ibtn" title="Modifica" onclick="editArtist(${a.id})">${icon('edit',15,1.8)}</button>
+      ${a.slug?`<a class="dt-ibtn" title="Anteprima pubblica" href="/${esc(a.slug)}" target="_blank" rel="noopener">${icon('eye',15,1.8)}</a>`:''}
+      <button type="button" class="dt-ibtn danger" title="Elimina" onclick="delArtist(${a.id},'${esc((a.stage_name||'').replace(/'/g,''))}')">${icon('trash',15,1.8)}</button>
     </div>
   </div>`;
 }
@@ -197,6 +237,8 @@ async function loadRoster(){
   try {
     const r = await api('management-artists.php');
     _rosterList = r.artists || [];
+    const shSel=document.getElementById('rq_show');
+    if(shSel && shSel.options.length<=1) shSel.innerHTML='<option value="">Tipo di show</option>'+showOptions('');
     const online=_rosterList.filter(a=>a.published==1).length;
     document.getElementById('rosterCount').textContent =
       _rosterList.length ? `${_rosterList.length} artist${_rosterList.length===1?'a gestito':'i gestiti'} · ${online} online` : 'Gli artisti che gestisci.';
@@ -206,12 +248,20 @@ async function loadRoster(){
 function paintRoster(){
   const q=(document.getElementById('rq_search')?.value||'').trim().toLowerCase();
   const st=document.getElementById('rq_state')?.value||'';
-  const L=_rosterList.filter(a=>{
+  const sh=document.getElementById('rq_show')?.value||'';
+  const sort=document.getElementById('rq_sort')?.value||'az';
+  let L=_rosterList.filter(a=>{
     if(q && !String(a.stage_name||'').toLowerCase().includes(q)) return false;
     if(st==='online' && a.published!=1) return false;
     if(st==='review' && a.published==1) return false;
+    if(sh && a.formazione!==sh) return false;
     return true;
   });
+  const cv=a=>{const v=a.cachet_min??a.cachet_max; return v==null?Infinity:+v;};
+  if(sort==='az') L.sort((a,b)=>String(a.stage_name||'').localeCompare(String(b.stage_name||''),'it'));
+  else if(sort==='za') L.sort((a,b)=>String(b.stage_name||'').localeCompare(String(a.stage_name||''),'it'));
+  else if(sort==='cachet') L.sort((a,b)=>cv(a)-cv(b));
+  else if(sort==='cachet_desc') L.sort((a,b)=>(cv(b)===Infinity?-1:cv(b))-(cv(a)===Infinity?-1:cv(a)));
   roster.innerHTML = L.length
     ? L.map(rostRow).join('')
     : (_rosterList.length
