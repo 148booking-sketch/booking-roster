@@ -20,18 +20,18 @@
 .avz-legend{display:flex;gap:16px;font-size:12px;color:var(--muted);margin-bottom:14px}
 .avz-legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:middle}
 .avz-box{background:#fff;border:1px solid var(--line2);border-radius:16px;padding:16px 18px;overflow-x:auto}
-.avz-grid{display:grid;grid-template-columns:150px repeat(21,minmax(19px,1fr));gap:3px;align-items:center;min-width:880px}
+.avz-grid{display:grid;grid-template-columns:210px repeat(21,minmax(19px,1fr));gap:4px;align-items:center;min-width:960px}
 .avz-dow{text-align:center;font:700 9px var(--f-body);color:#9a9aa2;line-height:1.2}
 .avz-dow b{display:block;color:#222;font-size:12px}
 .avz-dow .mo{display:block;color:#9a9aa2;font-size:8.5px;letter-spacing:.04em}
 .avz-dow.today b,.avz-dow.today .mo{color:var(--brand)}
-.avz-artist{display:flex;align-items:center;gap:8px;min-width:0;cursor:pointer}
+.avz-artist{display:flex;align-items:center;gap:9px;min-width:0;cursor:pointer;padding:7px 0}
 .avz-artist:hover .nm{text-decoration:underline}
-.avz-ava{width:26px;height:26px;border-radius:50%;overflow:hidden;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:10px;flex:none}
+.avz-ava{width:34px;height:34px;border-radius:50%;overflow:hidden;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex:none}
 .avz-ava img{width:100%;height:100%;object-fit:cover}
-.avz-artist .nm{font-weight:600;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.avz-artist .mt{font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.avz-cell{height:22px;border-radius:5px;background:#eafaf0;cursor:pointer}
+.avz-artist .nm{font-weight:600;font-size:13.5px;line-height:1.25;overflow-wrap:anywhere}
+.avz-artist .mt{font-size:11px;color:var(--muted);overflow-wrap:anywhere}
+.avz-cell{height:30px;border-radius:6px;background:#eafaf0;cursor:pointer}
 .avz-cell.busy{background:#fbeaef;cursor:default}
 .avz-cell.na{background:#f2f2f2;cursor:default}
 .avz-cell:not(.busy):not(.na):hover{outline:2px solid var(--brand);outline-offset:-1px}
