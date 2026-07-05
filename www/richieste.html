@@ -59,16 +59,10 @@
       <a class="btn primary sm cta" id="ctaSearch" href="/" style="display:none">Cerca artisti</a>
     </div>
 
-    <!-- filtri stato (vista tabella) -->
+    <!-- filtri stato (promoter/agenzia) -->
     <div class="fpills" id="fpills" style="display:none"></div>
 
-    <!-- vista tabella (promoter/agenzia, design 6b) -->
-    <div class="rq-table" id="tableWrap" style="display:none">
-      <div class="rqt-head"><div>Artista</div><div>Data evento</div><div>Compenso</div><div>Stato</div><div style="text-align:right">Azioni</div></div>
-      <div id="tableRows"></div>
-    </div>
-
-    <!-- vista card (artista, design 6a) -->
+    <!-- vista card (design 6a, per tutti i ruoli) -->
     <div id="cardList"></div>
 
     <div id="empty" class="empty" style="display:none">Nessuna richiesta per ora.</div>
@@ -121,12 +115,12 @@ async function load(){
     const pending=REQS.filter(x=>['inviata','vista'].includes(x.status)).length;
     pageSub.textContent = `${REQS.length} inviat${REQS.length===1?'a':'e'} · ${pending} in attesa di risposta`;
     document.getElementById('ctaSearch').style.display='';
-    renderPills(); renderTable();
+    renderPills(); renderCards();
   }
   document.getElementById('empty').style.display = REQS.length?'none':'block';
 }
 
-/* ---- vista TABELLA (promoter/agenzia, 6b) ---- */
+/* ---- filtri stato (promoter/agenzia) ---- */
 function renderPills(){
   const el=document.getElementById('fpills'); el.style.display='flex';
   const n=s=>REQS.filter(x=>s.includes(x.status)).length;
@@ -138,53 +132,25 @@ function renderPills(){
   ];
   el.innerHTML=pills.map(([k,l,extra])=>`<button class="fpill ${FILTER===k?'on':extra}" onclick="setFilter('${k}')">${l}</button>`).join('');
 }
-function setFilter(k){ FILTER=k; renderPills(); renderTable(); }
+function setFilter(k){ FILTER=k; renderPills(); renderCards(); }
 function filtered(){
   if(FILTER==='pending')   return REQS.filter(x=>['inviata','vista'].includes(x.status));
   if(FILTER==='accettata') return REQS.filter(x=>x.status==='accettata');
   if(FILTER==='rifiutata') return REQS.filter(x=>['rifiutata','ritirata'].includes(x.status));
   return REQS;
 }
-function renderTable(){
-  document.getElementById('tableWrap').style.display='';
-  const L=filtered();
-  document.getElementById('tableRows').innerHTML = L.map(rq=>{
-    const who=rq.stage_name||'Artista';
-    const st=RQST[rq.status]||[rq.status,'#666','#f2f2f2'];
-    const pending=['inviata','vista'].includes(rq.status);
-    return `<div class="rqt-row" id="row-${rq.id}">
-      <div class="rqt-who">
-        <span class="avatar" style="background:${avatarColor(who)}">${esc(avatarInitials(who))}</span>
-        <div style="min-width:0"><div class="nm">${esc(who)}</div><div class="mt">${rq.status==='vista'?'vista':'inviata'} ${fmtShort(rq.created_at)}</div></div>
-      </div>
-      <div style="font-size:13px;color:#444">${rq.event_date?fmtShort(rq.event_date):'Da concordare'}</div>
-      <div style="font-size:13px;font-weight:600">${feeOf(rq)}</div>
-      <div><span class="rqt-st" style="color:${st[1]};background:${st[2]}">${st[0]}</span></div>
-      <div class="rqt-actions">
-        ${pending?`<button class="abtn danger" onclick="respond(${rq.id},'ritira')">Ritira</button>`:''}
-        <button class="abtn" onclick="toggleThread(${rq.id})">${icon('message',13,1.9)} Messaggi</button>
-      </div>
-      <div class="rqt-thread rq-thread" id="th-${rq.id}" style="display:none">
-        <div class="th-list" id="thList-${rq.id}"><div class="th-empty">Carico…</div></div>
-        <form class="th-form" onsubmit="return sendMsg(event,${rq.id})">
-          <input id="thInput-${rq.id}" placeholder="Scrivi un messaggio…" maxlength="2000" autocomplete="off">
-          <button class="btn primary sm" title="Invia">${icon('send',16,2)}</button>
-        </form>
-      </div>
-    </div>`;
-  }).join('') || '<div class="empty" style="border:0">Nessuna richiesta con questo filtro.</div>';
-}
-
-/* ---- vista CARD (artista, 6a) ---- */
+/* ---- vista CARD (design 6a, tutti i ruoli) ---- */
 function renderCards(){
-  document.getElementById('cardList').innerHTML = REQS.map(rq=>{
-    const who = rq.org_name||rq.promoter_name||'Promoter';
+  const L = role==='artist' ? REQS : filtered();
+  document.getElementById('cardList').innerHTML = L.map(rq=>{
+    const who = role==='artist' ? (rq.org_name||rq.promoter_name||'Promoter') : (rq.stage_name||'Artista');
     const st = RQST[rq.status] || [rq.status,'#666','#f2f2f2'];
     let actions='';
     if(['inviata','vista'].includes(rq.status)){
-      actions = `
+      actions = role==='artist' ? `
         <button class="btn primary sm" onclick="respond(${rq.id},'accetta')">${icon('check',15,2.2)} Accetta</button>
-        <button class="btn ghost sm" onclick="respond(${rq.id},'rifiuta')">Rifiuta</button>`;
+        <button class="btn ghost sm" onclick="respond(${rq.id},'rifiuta')">Rifiuta</button>` : `
+        <button class="btn ghost sm" onclick="respond(${rq.id},'ritira')">Ritira</button>`;
     }
     return `<div class="rq-card ${esc(rq.status)}">
       <div class="rq-top">
@@ -216,7 +182,7 @@ function renderCards(){
         </form>
       </div>
     </div>`;
-  }).join('');
+  }).join('') || (REQS.length?'<div class="empty" style="border:0">Nessuna richiesta con questo filtro.</div>':'');
 }
 
 async function respond(id, action){
