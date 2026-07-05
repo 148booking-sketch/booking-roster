@@ -547,17 +547,31 @@ function mountPromoterShell(u, active) {
       + item('account', '/account.html', 'bell', 'Account & notifiche')
       + (isAg ? `<div class="ps-sec">Agenzia</div>${item('roster', '/management.html', 'agency', 'Il tuo roster')}` : '');
   const areaLabel = isArtist ? 'Area artista' : (isAg ? 'Area agenzia' : 'Area promoter');
+  const name = u.display_name || u.email || 'Account';
+  // menu mobile: stesse voci della sidebar, dentro la tendina dell'avatar
+  const mobileMenu = navItems.replace(/class="ps-item( on)?"/g, 'class="menu-item$1"').replace(/<div class="ps-sec">[^<]*<\/div>/g, '<div class="menu-divider"></div>')
+    + `<div class="menu-divider"></div><button type="button" class="menu-item" onclick="logout()">${icon('logout', 16)}<span>Esci</span></button>`;
   const shell = document.createElement('div');
   shell.className = 'pshell';
   shell.innerHTML = `
+    <div class="ps-mobilebar">
+      <a class="lg" href="/">Booking<span> Roster</span></a>
+      <div class="usermenu">
+        <button type="button" class="nav-avatar" onclick="toggleUserMenu(event)">
+          <span class="avatar" style="background:${avatarColor(name)}">${esc(avatarInitials(name))}</span>
+          ${icon('chevronDown', 15)}
+        </button>
+        <div class="menu-pop">${mobileMenu}</div>
+      </div>
+    </div>
     <aside class="pside">
       <div class="ps-brand"><a class="lg" href="/">Booking<span> Roster</span></a><div class="area">${areaLabel}</div></div>
       <nav class="ps-nav">${navItems}</nav>
       <div class="ps-foot">
         <button type="button" class="ps-item" onclick="logout()">${icon('logout', 17, 1.75)}Esci</button>
         <div class="ps-user">
-          <span class="avatar" style="background:${avatarColor(u.display_name || u.email)}">${esc(avatarInitials(u.display_name || u.email))}</span>
-          <div style="min-width:0"><div class="n">${esc(shortName(u.display_name || u.email, 18))}</div><div class="m">${isArtist ? 'Artista' : (isAg ? 'Agenzia' : 'Promoter')}</div></div>
+          <span class="avatar" style="background:${avatarColor(name)}">${esc(avatarInitials(name))}</span>
+          <div style="min-width:0"><div class="n">${esc(shortName(name, 18))}</div><div class="m">${isArtist ? 'Artista' : (isAg ? 'Agenzia' : 'Promoter')}</div></div>
         </div>
       </div>
     </aside>

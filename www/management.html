@@ -27,8 +27,16 @@
 .dt-ibtn.danger{color:#c0395e;border-color:#f2c9d5}
 @media(max-width:820px){
   .dt-head{display:none}
-  .dt-row{grid-template-columns:1fr !important;gap:8px}
-  .dt-actions{justify-content:flex-start}
+  /* riga roster compatta: avatar+nome a sinistra, cachet/stato/azioni in coda */
+  .dt-row.cols-rost{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;padding:10px 14px}
+  .cols-rost .dt-who{flex:1 1 auto;min-width:0}
+  .cols-rost .dt-meta{display:none}
+  .cols-rost > div:nth-child(3){font-size:12.5px !important;flex:none}
+  .cols-rost > div:nth-child(4){flex:none}
+  .cols-rost .dt-actions{flex:none;margin-left:auto;gap:5px}
+  .cols-rost .dt-ibtn{width:30px;height:30px}
+  .sec-toolbar{flex-direction:column;align-items:flex-start;gap:10px}
+  .sec-toolbar .btn{width:auto}
 }
 </style>
 <style>
@@ -86,7 +94,7 @@
           <p class="sub" style="margin:4px 0 0" id="rosterCount">Gli artisti che gestisci.</p>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <a class="btn ghost" href="/account.html" data-ic="sliders" data-ic-size="15">Profilo agenzia</a>
+          <a class="btn ghost hide-m" href="/account.html" data-ic="sliders" data-ic-size="15">Profilo agenzia</a>
           <button type="button" class="btn primary" onclick="startNew()" data-ic="plus" data-ic-size="15">Aggiungi artista</button>
         </div>
       </div>
