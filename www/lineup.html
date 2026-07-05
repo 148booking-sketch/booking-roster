@@ -48,13 +48,6 @@
 .lu-single-bar{width:100%;height:6px;border-radius:4px;background:var(--panel2);overflow:hidden;margin-top:2px}
 .lu-single-bar i{display:block;height:100%;background:var(--brand);border-radius:4px}
 .lu-single-pct{font-size:11px;color:var(--muted)}
-.lu-artists{display:flex;gap:16px;flex-wrap:wrap}
-.lu-artist{display:flex;flex-direction:column;align-items:center;gap:8px;width:96px;text-decoration:none;color:inherit}
-.lu-artist .ph{width:80px;height:80px;border-radius:14px;overflow:hidden;background:var(--panel2);display:flex;align-items:center;justify-content:center;color:#c9c9c9;position:relative}
-.lu-artist .ph img{width:100%;height:100%;object-fit:cover}
-.lu-artist .nm{font-size:12.5px;font-weight:600;text-align:center;line-height:1.25;display:flex;align-items:center;gap:3px;justify-content:center}
-.lu-artist .pr{font-size:11.5px;color:var(--muted)}
-.lu-artist:hover .nm{text-decoration:underline}
 .lu-total{margin-top:16px;padding-top:14px;border-top:1px solid var(--line2);display:flex;align-items:center;gap:14px;flex-wrap:wrap}
 .lu-total .amt{font:700 20px var(--f-display)}
 .lu-bar{flex:1;min-width:140px;height:8px;border-radius:5px;background:var(--panel2);overflow:hidden}
@@ -167,14 +160,6 @@ function updateLuSummary(){
     `<b>${n} generi</b> · ${mode==='piu'?'più artisti':'1 artista'}`;
 }
 
-function luArtistHtml(a, priceLabel){
-  const ph = a.photo_url ? `<img src="${esc(a.photo_url)}" referrerpolicy="no-referrer" alt="">` : icon('music',24,1.4);
-  return `<a class="lu-artist" href="/${esc(a.slug||'')}" target="_blank" rel="noopener">
-    <span class="ph">${ph}</span>
-    <span class="nm">${esc(a.stage_name||'Artista')}${a.verified?'<span class="vchk" style="width:13px;height:13px;font-size:7px">✓</span>':''}</span>
-    <span class="pr">${priceLabel}</span>
-  </a>`;
-}
 function lineupCardHtml(s, budget){
   const a = s.artists[0];
   const pct = Math.min(100, Math.round(s.total/budget*100));
@@ -187,10 +172,18 @@ function lineupCardHtml(s, budget){
     <div class="lu-single-pct">${pct}% del budget</div>
   </a>`;
 }
+function openerCardHtml(a){
+  const ph = a.photo_url ? `<img src="${esc(a.photo_url)}" referrerpolicy="no-referrer" alt="">` : icon('music',22,1.4);
+  return `<a class="lu-single" href="/${esc(a.slug||'')}" target="_blank" rel="noopener">
+    <div class="lu-single-ph">${ph}</div>
+    <div class="lu-single-nm">${esc(a.stage_name||'Artista')}${a.verified?'<span class="vchk" style="width:13px;height:13px;font-size:7px">✓</span>':''}</div>
+    <div class="lu-single-pr" style="color:#0a7d38">Gratis</div>
+  </a>`;
+}
 function openersCardHtml(openers){
   return `<div class="lu-rescard">
-    <div class="lu-openers-h">${icon('star',15,1.8)}Disponibili per l'apertura <span class="hint" style="display:inline">cachet €0</span></div>
-    <div class="lu-artists">${openers.map(a=>luArtistHtml(a,'Senza impegno')).join('')}</div>
+    <div class="lu-openers-h">${icon('star',15,1.8)}Disponibili per l'apertura (${openers.length}) <span class="hint" style="display:inline">cachet €0</span></div>
+    <div class="lu-single-grid">${openers.map(openerCardHtml).join('')}</div>
   </div>`;
 }
 /* riga "più artisti" (design 15a): griglia a 5 posti, paganti + aperture, sempre 5 in totale */

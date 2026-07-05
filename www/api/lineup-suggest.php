@@ -13,7 +13,7 @@
  *   5.000 → mostra artisti da 4.000 a 6.000), fino a un tetto ampio di 30 risultati per non
  *   sommergere la pagina. Se nessuno rientra nella finestra (budget molto alto o molto basso
  *   rispetto al roster), propone gli artisti dal cachet più alto disponibile, stessa priorità
- *   a fasce. Propone anche fino a 2 artisti "senza impegno" (cachet 0) come apertura.
+ *   a fasce. Propone anche fino a 12 artisti "senza impegno" (cachet 0) come apertura, in griglia.
  *
  * mode "piu": SEMPRE 5 righe con lo schema fisso (paganti + aperture, sempre 6 posti totali):
  *   1 artista + 5 aperture · 2+4 · 3+3 · 4+2 · 5+1.
@@ -234,7 +234,7 @@ if ($mode === 'uno') {
   $chosen = $matches ? array_slice($matches, 0, 30) : fetch_top_cachet($genres, 30);
   ok([
     'suggestions' => array_map(fn($a) => ['artists' => [$a], 'total' => $a['price']], $chosen),
-    'openers' => fetch_openers($genres, [], 2),
+    'openers' => fetch_openers($genres, [], 12),   // grid a piu' colonne: piu' aperture per riempire la pagina
   ]);
 }
 
