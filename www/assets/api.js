@@ -531,12 +531,12 @@ function mountPromoterShell(u, active) {
       + item('multilink', '/profilo.html#multilink', 'link', 'Multi link')
       + item('richieste', '/richieste.html', 'inbox', 'Richieste', 'psReq')
     : item('cerca', '/', 'search', 'Cerca artisti')
+      + item('lineup', '/lineup.html', 'zap', 'Crea Line Up')
       + item('mappa', '/mappa.html', 'pin', 'Mappa')
       + item('preferiti', '/preferiti.html', 'heart', 'Preferiti', 'psFav')
       + item('richieste', '/richieste.html', 'inbox', 'Richieste', 'psReq')
       + item('account', '/account.html', 'bell', 'Account & notifiche')
-      + (isAg ? `<div class="ps-sec">Agenzia</div>${item('roster', '/management.html', 'agency', 'Il mio roster')}` : '')
-      + item('lineup', '/lineup.html', 'zap', 'Line up');
+      + (isAg ? `<div class="ps-sec">Agenzia</div>${item('roster', '/management.html', 'agency', 'Il mio roster')}` : '');
   const areaLabel = isArtist ? 'Area artista' : (isAg ? 'Area agenzia' : 'Area promoter');
   const name = u.display_name || u.email || 'Account';
   // menu mobile: stesse voci della sidebar, dentro la tendina dell'avatar
