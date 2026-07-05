@@ -41,8 +41,6 @@
 .avz-cell:not(.busy):not(.na):hover{outline:2px solid var(--brand);outline-offset:-1px}
 .avz-sep{grid-column:1/-1;height:1px;background:#f2f2f2}
 .avz-hint{font-size:12px;color:var(--muted);margin-top:12px}
-.fav-x{color:var(--brand);background:none;border:0;cursor:pointer;padding:2px;flex:none;display:flex}
-.fav-x .ic-svg{fill:currentColor}
 /* popup richiesta (come 12a) */
 .reqmodal .mhead{display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid var(--line2)}
 .reqmodal .rm-ava{width:40px;height:40px;border-radius:50%;overflow:hidden;flex:none;background:var(--panel2);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px}
@@ -169,7 +167,6 @@ function draw(){
     const meta=[a.comune, priceOf(a)].filter(Boolean).join(' · ');
     html+='<div class="avz-sep"></div>';
     html+=`<div class="avz-artist" title="Vedi profilo">
-      <button class="fav-x" title="Rimuovi dai preferiti" onclick="event.stopPropagation();removeFav(${a.user_id})">${icon('heart',13,1.6)}</button>
       <span class="avz-ava" onclick="goArtist('${esc(a.slug||'')}')" style="background:${avatarColor(a.stage_name||'A')}">${pic}</span>
       <span style="min-width:0" onclick="goArtist('${esc(a.slug||'')}')"><span class="nm" style="display:block">${esc(a.stage_name||'Artista')}${a.verified?'<span class="vchk">✓</span>':''}</span><span class="mt" style="display:block">${esc(meta)}</span></span>
     </div>`;
@@ -183,18 +180,6 @@ function draw(){
   });
 
   document.getElementById('avzGrid').innerHTML=html;
-}
-
-async function removeFav(id){
-  try{
-    await api('favorites-toggle.php',{method:'POST',body:{artist_user_id:id,on:false}});
-    FAV=FAV.filter(a=>a.user_id!==id);
-    toast('Rimosso dai preferiti');
-    document.getElementById('favSub').textContent = FAV.length?`${FAV.length} artist${FAV.length===1?'a salvato':'i salvati'} · clicca un giorno libero per richiederli`:'Le disponibilità dei tuoi artisti salvati.';
-    document.getElementById('favEmpty').style.display = FAV.length?'none':'block';
-    document.querySelector('.avz-box').style.display = FAV.length?'':'none';
-    if(FAV.length) draw();
-  }catch(err){ toast(errMsg(err),true); }
 }
 
 /* ---- popup richiesta con data preselezionata (12a) ---- */
