@@ -108,10 +108,17 @@
 
       <!-- FORM ARTISTA (crea/modifica) -->
       <form id="formA" style="display:none" onsubmit="return saveArtist(event)">
-      <div id="a_banner" class="edit-banner" style="display:none"></div>
-      <div id="a_pubStatus" style="display:none;align-items:center;gap:10px;margin:-6px 0 4px;flex-wrap:wrap">
-        <span id="a_pubBadge"></span>
-        <button type="button" class="btn ghost sm" id="a_pubBtn" onclick="toggleArtistPublishForm()"></button>
+      <div class="af-head">
+        <span class="af-ava" id="aAva"></span>
+        <div>
+          <div class="af-nm" id="aName">Nuovo artista</div>
+          <div class="af-sub" id="aSub">Crea a mano un profilo artista.</div>
+        </div>
+        <div id="a_pubStatus" style="display:none;align-items:center;gap:10px;margin-left:auto;flex-wrap:wrap">
+          <span id="a_pubBadge"></span>
+          <button type="button" class="btn ghost sm" id="a_pubBtn" onclick="toggleArtistPublishForm()"></button>
+          <a class="btn ghost sm" id="aPreview" style="display:none" target="_blank" rel="noopener">Anteprima</a>
+        </div>
       </div>
       <div id="a_pubMissing" class="hint" style="display:none;margin:0 0 14px;color:#7a5b00"></div>
 
@@ -172,9 +179,12 @@
         </div>
       </div>
 
-      <div style="display:flex;gap:10px">
-        <button class="btn primary" style="flex:1" id="a_submit">Crea artista</button>
-        <button type="button" class="btn ghost" onclick="cancelArtist()">← Torna all'elenco</button>
+      <div class="af-save">
+        <button type="button" class="btn ghost sm" id="aDelete" style="display:none;color:#c0395e;border-color:#f2c9d5" onclick="deleteFromForm()">Elimina artista</button>
+        <div style="margin-left:auto;display:flex;gap:10px">
+          <button type="button" class="btn ghost" onclick="cancelArtist()">Annulla</button>
+          <button class="btn primary" id="a_submit">Crea artista</button>
+        </div>
       </div>
       </form>
     </div><!-- /artistiW -->
@@ -610,7 +620,10 @@ const setV = (id,v) => { const el=document.getElementById(id); if(el) el.value =
 function newArtist(){
   editAId = null; formA.reset();
   a_passWrap.style.display=''; a_pass.required=true;
-  a_statusWrap.style.display='none'; a_banner.style.display='none';
+  a_statusWrap.style.display='none';
+  aName.textContent='Nuovo artista'; aSub.textContent='Crea a mano un profilo artista.';
+  aAva.style.background='#c9c9c9'; aAva.innerHTML=icon('mic',20,1.7);
+  aPreview.style.display='none'; aDelete.style.display='none';
   a_submit.textContent='Crea artista';
   artistFormReset('a_');
   onVerifiedToggle();
@@ -749,7 +762,13 @@ async function editUser(id, role){
       tab('artisti'); showArtistForm(); editAId = id;
       a_passWrap.style.display='none'; a_pass.required=false; a_pass.value='';
       a_statusWrap.style.display=''; setV('a_status', u.status);
-      a_banner.style.display=''; a_banner.textContent = 'Modifica artista #'+id+' — '+ (p.stage_name||u.display_name||'');
+      const nmA = p.stage_name||u.display_name||'Artista';
+      aName.innerHTML = esc(nmA)+(p.verified==1?'<span class="vchk" style="width:15px;height:15px;font-size:8px">✓</span>':'');
+      aSub.textContent = 'Artista #'+id+(u.email?' · '+u.email:'');
+      aAva.style.background = avatarColor(nmA);
+      aAva.innerHTML = p.photo_url ? `<img src="${esc(p.photo_url)}" referrerpolicy="no-referrer">` : esc(avatarInitials(nmA));
+      if (p.slug){ aPreview.href='/'+p.slug; aPreview.style.display=''; } else aPreview.style.display='none';
+      aDelete.style.display = IS_SUPER ? '' : 'none';
       await loadComuni();
       a_pubStatus.style.display='flex'; setPublishIndicator(p.published==1, artistMissingFields(p));
       a_submit.textContent='Salva modifiche';
@@ -884,6 +903,13 @@ function fillManagerOptions(){
   sel.value = cur;
 }
 
+/* ---- Elimina dal form artista (sticky bar) ---- */
+function deleteFromForm(){
+  if(!editAId) return;
+  const nm=document.getElementById('aName').textContent.replace('✓','').trim();
+  deleteUser(editAId,'artist',{dataset:{name:nm}});
+  showArtistList();
+}
 /* ---- Elimina un utente ---- */
 async function deleteUser(id, role, btn){
   const label = role==='artist' ? 'artista' : (promoMode==='agenzia' ? 'account agenzia' : 'promoter');
@@ -978,6 +1004,12 @@ async function doBootstrap(e){ e.preventDefault();
   .admin-head{padding:14px 16px 4px}
   .admin-body{padding:12px 16px 40px}
 }
+.af-head{display:flex;align-items:center;gap:14px;margin:0 0 16px;flex-wrap:wrap}
+.af-ava{width:46px;height:46px;border-radius:50%;overflow:hidden;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;flex:none}
+.af-ava img{width:100%;height:100%;object-fit:cover}
+.af-nm{font:700 20px var(--f-display);letter-spacing:-.4px;display:flex;align-items:center;gap:7px}
+.af-sub{font-size:12.5px;color:var(--muted)}
+.af-save{position:sticky;bottom:0;background:#fff;border-top:1px solid var(--line2);padding:14px 0;display:flex;align-items:center;gap:12px;box-shadow:0 -6px 20px rgba(0,0,0,.05);margin-top:8px;z-index:5}
 .check{display:inline-flex;align-items:center;gap:6px;margin-right:18px;font-weight:500}
 .check input{width:auto}
 .edit-banner{background:#fff7e6;border:1px solid #ffe1a8;color:#7a5b00;padding:8px 12px;border-radius:10px;margin-bottom:14px;font-weight:600;font-size:14px}

@@ -86,7 +86,7 @@
           <p class="sub" style="margin:4px 0 0" id="rosterCount">Gli artisti che gestisci.</p>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <button type="button" class="btn ghost" onclick="showProfile()" data-ic="sliders" data-ic-size="15">Profilo agenzia</button>
+          <a class="btn ghost" href="/account.html" data-ic="sliders" data-ic-size="15">Profilo agenzia</a>
           <button type="button" class="btn primary" onclick="startNew()" data-ic="plus" data-ic-size="15">Aggiungi artista</button>
         </div>
       </div>
@@ -110,29 +110,6 @@
         <div id="roster"></div>
       </div>
     </div>
-
-    <!-- PROFILO AGENZIA -->
-    <form id="agencyForm" class="panel" style="display:none;max-width:560px" onsubmit="return saveAgency(event)">
-      <h3 style="margin:0 0 12px" data-ic="sliders">Profilo agenzia</h3>
-      <div class="field"><label>Nome agenzia *</label><input id="ag_org" required></div>
-      <div class="field"><label>Tipo</label>
-        <select id="ag_tipo">
-          <option value="agenzia">Agenzia</option><option value="associazione">Associazione</option>
-          <option value="festival">Festival</option><option value="locale">Locale</option>
-          <option value="privato">Privato</option><option value="altro">Altro</option>
-        </select>
-      </div>
-      <div class="row">
-        <div class="autocomplete field"><label>Comune</label><input id="ag_comune" placeholder="Es. Roma"></div>
-        <div class="field" style="max-width:110px"><label>Prov.</label><input id="ag_prov" maxlength="2" placeholder="RM"></div>
-        <div class="field"><label>Telefono</label><input id="ag_phone" placeholder="+39..."></div>
-      </div>
-      <div class="field"><label>Sito web o altro link</label><input id="ag_web" placeholder="https://..."></div>
-      <div style="display:flex;gap:10px">
-        <button class="btn primary" style="flex:1">Salva profilo</button>
-        <button type="button" class="btn ghost" onclick="backToList()">← Torna al roster</button>
-      </div>
-    </form>
 
     <!-- STEP 1 (solo nuovo): idoneità Apple Music -->
     <form id="eligStep" class="panel" style="display:none;max-width:560px" onsubmit="return checkElig(event)">
@@ -203,34 +180,11 @@ function showWithHeader(){
   await loadGenres();
   artistFormMount('mfMount', 'm_');
   artistFormReset('m_');
-  comuniAutocomplete(document.getElementById('ag_comune'), (n,pr)=> ag_prov.value = pr);
   loadRoster();
 })();
 
 /* ---- viste ---- */
-function showList(){ rosterView.style.display=''; eligStep.style.display='none'; notElig.style.display='none'; artForm.style.display='none'; agencyForm.style.display='none'; }
-
-/* ---- profilo agenzia ---- */
-function showProfile(){
-  const p = MEPROF || {};
-  ag_org.value = p.org_name || ME.display_name || '';
-  ag_tipo.value = p.tipo || 'agenzia';
-  ag_comune.value = p.comune || ''; ag_prov.value = p.provincia || '';
-  ag_phone.value = p.phone || ''; ag_web.value = p.website || '';
-  rosterView.style.display='none'; eligStep.style.display='none'; notElig.style.display='none'; artForm.style.display='none';
-  agencyForm.style.display=''; window.scrollTo({top:0,behavior:'smooth'});
-}
-async function saveAgency(e){ e.preventDefault();
-  try {
-    await api('promoter-profile-save.php',{method:'POST',body:{
-      org_name:ag_org.value, tipo:ag_tipo.value, comune:ag_comune.value,
-      provincia:ag_prov.value, phone:ag_phone.value, website:ag_web.value }});
-    MEPROF = {...(MEPROF||{}), org_name:ag_org.value, tipo:ag_tipo.value, comune:ag_comune.value, provincia:ag_prov.value, phone:ag_phone.value, website:ag_web.value};
-    _me = null; toast('Profilo agenzia salvato ✓'); renderNav();
-    backToList();
-  } catch(err){ toast(errMsg(err), true); }
-  return false;
-}
+function showList(){ rosterView.style.display=''; eligStep.style.display='none'; notElig.style.display='none'; artForm.style.display='none'; }
 function backToList(){ editId=null; showList(); loadRoster(); }
 function startNew(){
   editId = null;

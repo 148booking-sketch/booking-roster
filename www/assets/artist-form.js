@@ -27,25 +27,25 @@ async function loadGenres() {
 function artistFormHTML(p) {
   return `
     <section class="fsec info">
-      <h2 class="fsec-h">👤 Informazioni personali</h2>
+      <h2 class="fsec-h">Informazioni personali</h2>
       <div class="infogrid">
-        <div id="${p}photoPrev" style="width:84px;height:84px;border-radius:12px;background:#fff;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:30px;color:#3a3f4d;overflow:hidden;flex-shrink:0">🎵</div>
+        <div id="${p}photoPrev" style="width:84px;height:84px;border-radius:12px;background:#fff;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:#c9c9c9;overflow:hidden;flex-shrink:0">${icon('music',30,1.4)}</div>
         <div class="field" style="margin-bottom:0"><label>Nome d'arte *</label><input id="${p}stage_name" required></div>
       </div>
       <div class="hint" id="${p}nameHint" style="margin:8px 0 14px">La foto profilo viene presa automaticamente da <b>Spotify</b> (link nella sezione Musica). Se non è collegato, assegniamo in automatico un'icona a tema in base al <b>primo genere</b> scelto qui sotto.</div>
       <div class="field">
         <label>Bio</label>
         <textarea id="${p}bio" placeholder="Chi è, cosa propone, esperienze live..."></textarea>
-        <div style="display:flex;align-items:center;gap:10px;margin-top:10px;padding:10px 12px;background:#eafaf0;border:1px solid #bfe9cf;border-radius:10px">
-          <label style="display:flex;align-items:center;gap:8px;font-weight:700;cursor:pointer;margin:0">
+        <div style="display:flex;align-items:center;gap:10px;margin-top:10px;padding:10px 12px;background:#f7f7f7;border:1px solid var(--line2);border-radius:10px">
+          <label style="display:flex;align-items:center;gap:8px;font-weight:600;cursor:pointer;margin:0">
             <input type="checkbox" id="${p}bio_from_spotify" onchange="bioSpotifyUI('${p}')" style="width:auto">
-            🎧 Usa la bio da Spotify (Artist's Pick) e tienila sincronizzata
+            Usa la bio da Spotify (Artist's Pick) e tienila sincronizzata
           </label>
         </div>
         <div class="hint" id="${p}bioSpotifyHint" style="display:none;margin-top:6px">Aggiornata automaticamente dal testo <b>Artist's Pick</b> del tuo profilo Spotify: qui non è modificabile a mano. Ricorda di tenerlo aggiornato su Spotify!</div>
       </div>
 
-      <h3>📅 Disponibilità (Google Calendar)</h3>
+      <h3>Disponibilità (Google Calendar)</h3>
       <div class="field">
         <label>Link iCal del calendario</label>
         <input id="${p}calendar_url" placeholder="https://calendar.google.com/calendar/ical/.../basic.ics">
@@ -65,13 +65,13 @@ function artistFormHTML(p) {
     </section>
 
     <section class="fsec music">
-      <h2 class="fsec-h">🎵 Musica</h2>
+      <h2 class="fsec-h">Musica</h2>
       <div class="row">
         <div class="field"><label>Tipo di Show</label><div class="chips" id="${p}showChips"></div></div>
         <div class="field" style="max-width:150px"><label>On Stage</label><input id="${p}on_stage" type="number" min="0" placeholder="4"></div>
       </div>
       <div class="field"><label>Generi <span class="hint" style="display:inline" id="${p}genreMaxHint">(max 1)</span></label><div class="chips" id="${p}genreChips"></div></div>
-      <h3>🔗 Link & social</h3>
+      <h3>Link & social</h3>
       <div class="hint" style="margin:-4px 0 12px">Da Spotify/TikTok/YouTube/Twitch ricaviamo automaticamente le statistiche (ascoltatori, follower, iscritti).</div>
       <div class="field"><label>Sito web</label><input id="${p}website" placeholder="https://..."></div>
       <div class="row">
@@ -90,7 +90,7 @@ function artistFormHTML(p) {
     </section>
 
     <section class="fsec money">
-      <h2 class="fsec-h">💶 Cachet & Sconti</h2>
+      <h2 class="fsec-h">Cachet & sconti</h2>
       <div class="row">
         <div class="field" style="min-width:140px"><label>Cachet a serata (€)</label><input id="${p}cachet" type="number" min="0" placeholder="500"></div>
         <div class="field" style="max-width:170px"><label>Cachet</label>
@@ -105,7 +105,7 @@ function artistFormHTML(p) {
         <div class="field" id="${p}wrap_forf" style="display:none;max-width:140px"><label>Forfait (€)</label><input id="${p}rimborso_forfait" type="number" min="0" placeholder="80"></div>
       </div>
       <div class="row">
-        <div class="field"><label>🏷️ Cachet PROMO (€) <span class="hint" style="display:inline">opzionale</span></label>
+        <div class="field"><label>Cachet PROMO (€) <span class="hint" style="display:inline">opzionale</span></label>
           <input id="${p}cachet_promo" type="number" min="0" placeholder="es. 400">
           <div class="hint">Se compilato, sul profilo appare il badge <b>PROMO</b> con il prezzo pieno barrato.</div></div>
         <div class="field" style="max-width:200px"><label>Promo valida fino al</label><input id="${p}promo_until" type="date"></div>
@@ -113,7 +113,7 @@ function artistFormHTML(p) {
     </section>
 
     <section class="fsec tech">
-      <h2 class="fsec-h">🎛️ Rider Tecnico</h2>
+      <h2 class="fsec-h">Rider tecnico</h2>
       <div class="row">
         <div class="field" style="max-width:200px"><label>Durata set (min)</label><input id="${p}durata_set_min" type="number" min="0" placeholder="90"></div>
         <div class="field"><label>Scheda tecnica (URL Drive/Dropbox/PDF)</label><input id="${p}tech_sheet_url" type="url" placeholder="https://drive.google.com/..."></div>
@@ -207,7 +207,7 @@ function rimbUI(p) {
  *  Qui si aggiorna solo l'anteprima con l'URL che il backend ha calcolato. */
 function setPhotoFromServer(p, url) {
   const el = document.getElementById(p + 'photoPrev');
-  el.innerHTML = url ? `<img src="${esc(url)}" alt="" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover">` : '🎵';
+  el.innerHTML = url ? `<img src="${esc(url)}" alt="" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover">` : icon('music',30,1.4);
 }
 
 /* ---- Popolamento / reset / raccolta dati ---- */
