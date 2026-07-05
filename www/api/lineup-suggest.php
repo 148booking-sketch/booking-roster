@@ -42,8 +42,13 @@ if ($budget <= 0) fail('budget_required');
 if ($mode === 'uno') { $loBound = $budget * 0.8; $hiBound = $budget * 1.2; }
 else                 { $loBound = $budget * 0.1; $hiBound = $budget * 1.1; }
 
-$where  = ["ap.published = 1", "ap.trattativa_riservata = 0", "ap.cachet_min IS NOT NULL", "ap.cachet_min <= ?"];
-$params = [$hiBound];
+// Ammette l'artista se il cachet BASE rientra nel tetto, OPPURE se ha una promo attiva sotto
+// il tetto: senza l'OR sulla promo, un artista con cachet alto ma promo bassa (es. base 5.000,
+// promo attiva 3.500) veniva escluso già qui, prima ancora di calcolare il prezzo scontato più
+// sotto — stessa regola già in uso in artists-search.php per il filtro budget.
+$where  = ["ap.published = 1", "ap.trattativa_riservata = 0", "ap.cachet_min IS NOT NULL",
+           "(ap.cachet_min <= ? OR (ap.cachet_promo IS NOT NULL AND ap.cachet_promo > 0 AND ap.cachet_promo <= ? AND (ap.promo_until IS NULL OR ap.promo_until >= CURDATE())))"];
+$params = [$hiBound, $hiBound];
 
 if ($genres) {
   $ph = implode(',', array_fill(0, count($genres), '?'));
