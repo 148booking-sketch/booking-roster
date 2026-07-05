@@ -12,14 +12,14 @@
 ## Token (`:root` in `style.css`)
 | Token | Valore | Uso |
 |---|---|---|
-| `--brand` | `#d52454` | azioni primarie, stato attivo, accenti |
+| `--brand` | `#d52454` | azioni primarie, stato attivo, accenti, **toast/messaggi di errore** |
 | `--brand2` | `#b81e47` | hover del brand |
 | `--txt` | `#222222` | testo principale, bottone scuro |
 | `--muted` | `#717171` | testo secondario |
 | `--line` / `--line2` | `#dddddd` / `#ebebeb` | bordi input / divisori |
 | `--panel2` | `#f7f7f7` | superfici secondarie, chip |
 | sidebar admin | `#17171b` | fondo sidebar; testo voci `#9a9aa2`, dimmed `#6b6b74` |
-| successo | `#0a7d38` su `#eafaf0` | stato "Online" |
+| successo | `#0a7d38` su `#eafaf0` | stato "Online", **conferme/toast ok** |
 | attesa | `#a86a00` su `#fff5e6` | stato "In attesa" |
 | verificato | `#1d9bf0` | spunta blu |
 | radius | card 14–16px · input/bottoni 10px · voci sidebar 9px · pill 20–40px | |
