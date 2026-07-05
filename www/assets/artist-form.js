@@ -29,7 +29,7 @@ function artistFormHTML(p) {
     <section class="fsec info">
       <h2 class="fsec-h">Informazioni personali</h2>
       <div class="infogrid">
-        <div id="${p}photoPrev" style="width:84px;height:84px;border-radius:12px;background:#fff;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:#c9c9c9;overflow:hidden;flex-shrink:0">${icon('music',30,1.4)}</div>
+        <div id="${p}photoPrev" style="width:84px;align-self:stretch;min-height:70px;border-radius:12px;background:#fff;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:#c9c9c9;overflow:hidden;flex-shrink:0">${icon('music',30,1.4)}</div>
         <div class="field" style="margin-bottom:0"><label>Nome d'arte *</label><input id="${p}stage_name" required></div>
       </div>
       <div class="hint" id="${p}nameHint" style="margin:8px 0 14px">La foto profilo viene presa automaticamente da <b>Spotify</b> (link nella sezione Musica). Se non è collegato, assegniamo in automatico un'icona a tema in base al <b>primo genere</b> scelto qui sotto.</div>
@@ -73,7 +73,10 @@ function artistFormHTML(p) {
       <div class="field"><label>Generi <span class="hint" style="display:inline" id="${p}genreMaxHint">(max 1)</span></label><div class="chips" id="${p}genreChips"></div></div>
       <h3>Link & social</h3>
       <div class="hint" style="margin:-4px 0 12px">Da Spotify/TikTok/YouTube/Twitch ricaviamo automaticamente le statistiche (ascoltatori, follower, iscritti).</div>
-      <div class="field"><label>Sito web</label><input id="${p}website" placeholder="https://..."></div>
+      <div class="row">
+        <div class="field"><label>Sito web</label><input id="${p}website" placeholder="https://..."></div>
+        <div class="field"><label>Apple Music</label><input id="${p}s_am" placeholder="https://music.apple.com/..."></div>
+      </div>
       <div class="row">
         <div class="field"><label>Spotify (artista)</label><input id="${p}s_sp" placeholder="https://open.spotify.com/artist/..."></div>
         <div class="field"><label>Instagram</label><input id="${p}s_ig" placeholder="@handle o URL"></div>
@@ -83,9 +86,6 @@ function artistFormHTML(p) {
         <div class="field"><label>TikTok</label><input id="${p}s_tt" placeholder="@handle o URL"></div>
         <div class="field"><label>YouTube</label><input id="${p}s_yt" placeholder="URL canale"></div>
         <div class="field"><label>Twitch</label><input id="${p}s_tw" placeholder="@handle o URL"></div>
-      </div>
-      <div class="row">
-        <div class="field"><label>Apple Music</label><input id="${p}s_am" placeholder="https://music.apple.com/..."></div>
       </div>
     </section>
 
