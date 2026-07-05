@@ -311,7 +311,8 @@ function navUser(u, items, mobileItems = []) {
     href === '__logout__'
       ? `<button type="button" class="menu-item ${cls}" onclick="logout()">${icon(ic, 16)}<span>${label}</span></button>`
       : `<a class="menu-item ${cls}" href="${href}">${icon(ic, 16)}<span>${label}</span></a>`).join('');
-  const notifItem = `<button type="button" class="menu-item m-only" onclick="openNotifFromMenu(event)">${icon('bell', 16)}<span>Notifiche</span><span class="menu-dot" id="menuNotifDot" style="display:none"></span></button>`;
+  const notifItem = `<button type="button" class="menu-item m-only" onclick="openNotifFromMenu(event)">${icon('bell', 16)}<span>Notifiche</span><span class="menu-dot" id="menuNotifDot" style="display:none"></span></button>
+    <div class="menu-notifs m-only" id="menuNotifList" style="display:none"></div>`;
   const mobile = (mobileItems.length ? mk(mobileItems, 'm-only') : '') + notifItem + '<div class="menu-divider m-only"></div>';
   const menu = mobile + mk([...items, ['__logout__', 'Esci', 'logout']]);
   return `<div class="usermenu">
@@ -529,14 +530,23 @@ async function toggleNotif(e) {
   wrap.classList.add('open');
   fillNotifPop();
 }
-/* mobile: apre il pannello notifiche dalla voce del sottomenu utente */
+/* mobile: le notifiche si espandono DENTRO il sottomenu, sotto la voce */
 async function openNotifFromMenu(e) {
   e.stopPropagation(); e.preventDefault();
-  document.querySelectorAll('.usermenu.open').forEach(m => m.classList.remove('open'));
-  const wrap = document.querySelector('.notifwrap');
-  if (!wrap) return;
-  wrap.classList.add('open');
-  fillNotifPop();
+  const box = document.getElementById('menuNotifList');
+  if (!box) return;
+  if (box.style.display !== 'none') { box.style.display = 'none'; return; }
+  box.style.display = '';
+  box.innerHTML = '<div class="notif-empty">Carico…</div>';
+  const list = await loadNotifs(true);
+  localStorage.setItem(NOTIF_SEEN_KEY, String(Date.now()));
+  ['notifDot', 'menuNotifDot'].forEach(id => { const d = document.getElementById(id); if (d) d.style.display = 'none'; });
+  box.innerHTML = list.length ? list.map(n => `
+    <a class="notif-item" href="${esc(n.href || '/richieste.html')}">
+      <span class="notif-ic">${icon(n.icon || 'inbox', 15)}</span>
+      <span class="notif-txt"><b>${esc(n.title)}</b>${n.meta ? `<span>${esc(n.meta)}</span>` : ''}</span>
+      <span class="notif-when">${notifTimeAgo(n.ts)}</span>
+    </a>`).join('') : '<div class="notif-empty">Nessuna notifica per ora.</div>';
 }
 function navBell() {
   return `<div class="usermenu notifwrap">
