@@ -311,7 +311,8 @@ function navUser(u, items, mobileItems = []) {
     href === '__logout__'
       ? `<button type="button" class="menu-item ${cls}" onclick="logout()">${icon(ic, 16)}<span>${label}</span></button>`
       : `<a class="menu-item ${cls}" href="${href}">${icon(ic, 16)}<span>${label}</span></a>`).join('');
-  const mobile = mobileItems.length ? mk(mobileItems, 'm-only') + '<div class="menu-divider m-only"></div>' : '';
+  const notifItem = `<button type="button" class="menu-item m-only" onclick="openNotifFromMenu(event)">${icon('bell', 16)}<span>Notifiche</span><span class="menu-dot" id="menuNotifDot" style="display:none"></span></button>`;
+  const mobile = (mobileItems.length ? mk(mobileItems, 'm-only') : '') + notifItem + '<div class="menu-divider m-only"></div>';
   const menu = mobile + mk([...items, ['__logout__', 'Esci', 'logout']]);
   return `<div class="usermenu">
     <button type="button" class="nav-avatar" onclick="toggleUserMenu(event)">
@@ -497,11 +498,27 @@ function notifTimeAgo(ts) {
   return d.toLocaleDateString('it-IT');
 }
 async function refreshNotifDot() {
-  const dot = document.getElementById('notifDot'); if (!dot) return;
+  const dot = document.getElementById('notifDot');
+  const mdot = document.getElementById('menuNotifDot');
+  if (!dot && !mdot) return;
   const list = await loadNotifs();
   const seen = +(localStorage.getItem(NOTIF_SEEN_KEY) || 0);
   const hasNew = list.some(n => new Date((n.ts || '').replace(' ', 'T')).getTime() > seen);
-  dot.style.display = hasNew ? '' : 'none';
+  if (dot) dot.style.display = hasNew ? '' : 'none';
+  if (mdot) mdot.style.display = hasNew ? '' : 'none';
+}
+async function fillNotifPop() {
+  const pop = document.getElementById('notifPop');
+  pop.innerHTML = '<div class="notif-empty">Carico…</div>';
+  const list = await loadNotifs(true);
+  localStorage.setItem(NOTIF_SEEN_KEY, String(Date.now()));
+  ['notifDot', 'menuNotifDot'].forEach(id => { const d = document.getElementById(id); if (d) d.style.display = 'none'; });
+  pop.innerHTML = list.length ? list.map(n => `
+    <a class="notif-item" href="${esc(n.href || '/richieste.html')}">
+      <span class="notif-ic">${icon(n.icon || 'inbox', 16)}</span>
+      <span class="notif-txt"><b>${esc(n.title)}</b>${n.meta ? `<span>${esc(n.meta)}</span>` : ''}</span>
+      <span class="notif-when">${notifTimeAgo(n.ts)}</span>
+    </a>`).join('') : '<div class="notif-empty">Nessuna notifica per ora.</div>';
 }
 async function toggleNotif(e) {
   e.stopPropagation();
@@ -510,17 +527,16 @@ async function toggleNotif(e) {
   document.querySelectorAll('.usermenu.open').forEach(m => m.classList.remove('open'));
   if (was) return;
   wrap.classList.add('open');
-  const pop = document.getElementById('notifPop');
-  pop.innerHTML = '<div class="notif-empty">Carico…</div>';
-  const list = await loadNotifs(true);
-  localStorage.setItem(NOTIF_SEEN_KEY, String(Date.now()));
-  const dot = document.getElementById('notifDot'); if (dot) dot.style.display = 'none';
-  pop.innerHTML = list.length ? list.map(n => `
-    <a class="notif-item" href="${esc(n.href || '/richieste.html')}">
-      <span class="notif-ic">${icon(n.icon || 'inbox', 16)}</span>
-      <span class="notif-txt"><b>${esc(n.title)}</b>${n.meta ? `<span>${esc(n.meta)}</span>` : ''}</span>
-      <span class="notif-when">${notifTimeAgo(n.ts)}</span>
-    </a>`).join('') : '<div class="notif-empty">Nessuna notifica per ora.</div>';
+  fillNotifPop();
+}
+/* mobile: apre il pannello notifiche dalla voce del sottomenu utente */
+async function openNotifFromMenu(e) {
+  e.stopPropagation(); e.preventDefault();
+  document.querySelectorAll('.usermenu.open').forEach(m => m.classList.remove('open'));
+  const wrap = document.querySelector('.notifwrap');
+  if (!wrap) return;
+  wrap.classList.add('open');
+  fillNotifPop();
 }
 function navBell() {
   return `<div class="usermenu notifwrap">

@@ -60,7 +60,7 @@ a{color:inherit;text-decoration:none}
 .nav-link:hover{color:var(--txt)}
 .nav-link.on{color:var(--txt)}
 .nav-link.on::after{content:"";position:absolute;left:0;right:0;bottom:-3px;height:2px;background:var(--brand);border-radius:2px}
-.nav-right{display:flex;align-items:center;gap:11px;flex:none}
+.nav-right{display:flex;align-items:center;gap:11px;flex:none;margin-left:auto}
 .nav-bell{width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:#fff;display:flex;align-items:center;justify-content:center;color:#444;cursor:pointer;text-decoration:none;flex:none}
 .nav-bell:hover{background:var(--panel2)}
 /* menu utente: pill avatar + tendina */
@@ -87,7 +87,10 @@ a{color:inherit;text-decoration:none}
   .nav.logged .nav-bell{display:none}
   .menu-item.m-only{display:flex}
   .menu-divider.m-only{display:block}
+  /* pannello notifiche aperto dal sottomenu: ancorato a destra, largo quasi quanto lo schermo */
+  .notif-pop{position:fixed;top:70px;right:12px;left:12px;min-width:0;max-width:none}
 }
+.menu-dot{width:8px;height:8px;border-radius:50%;background:var(--brand);margin-left:auto;flex:none}
 @media(max-width:480px){
   .nav-links{gap:16px;font-size:13.5px}
 }
