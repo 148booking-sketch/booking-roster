@@ -47,28 +47,20 @@ function artistFormHTML(p) {
       </div>
 
       <h3>Disponibilità (Google Calendar)</h3>
-      <div class="field">
-        <label>Link iCal del calendario</label>
-        <input id="${p}calendar_url" placeholder="https://calendar.google.com/calendar/ical/.../basic.ics">
-        <div class="hint">Google Calendar → <b>Impostazioni del calendario</b> → <b>Indirizzo segreto in formato iCal</b>. I promoter vedranno solo <b>quali date sono libere/occupate</b>.</div>
+      <div class="row">
+        <div class="field" style="flex:2">
+          <label>Link iCal del calendario</label>
+          <input id="${p}calendar_url" placeholder="https://calendar.google.com/calendar/ical/.../basic.ics">
+          <div class="hint">Google Calendar → <b>Impostazioni del calendario</b> → <b>Indirizzo segreto in formato iCal</b>. I promoter vedranno solo <b>quali date sono libere/occupate</b>.</div>
+        </div>
+        <div class="field"><label>Telefono</label><input id="${p}phone" placeholder="+39..."></div>
       </div>
 
       <div class="row">
         <div class="autocomplete field"><label>Comune base</label><input id="${p}comune" placeholder="Es. Latina"></div>
         <div class="field" style="max-width:110px"><label>Prov.</label><input id="${p}provincia" maxlength="2" placeholder="LT"></div>
-        <div class="field"><label>Telefono</label><input id="${p}phone" placeholder="+39..."></div>
         <div class="field" style="max-width:150px"><label>Raggio (km)</label><input id="${p}travel_max_km" type="number" min="0" placeholder="150"></div>
       </div>
-    </section>
-
-    <section class="fsec music">
-      <h2 class="fsec-h">Musica</h2>
-      <div class="row">
-        <div class="field"><label>Tipo di Show</label><div class="chips" id="${p}showChips"></div></div>
-        <div class="field" style="max-width:150px"><label>On Stage</label><input id="${p}on_stage" type="number" min="0" placeholder="4"></div>
-        <div class="field" style="max-width:170px"><label>Durata set (min)</label><input id="${p}durata_set_min" type="number" min="0" placeholder="90"></div>
-      </div>
-      <div class="field"><label>Generi <span class="hint" style="display:inline" id="${p}genreMaxHint">(max 1)</span></label><div class="chips" id="${p}genreChips"></div></div>
     </section>
 
     <section class="fsec social" id="${p}socialSec">
@@ -89,6 +81,17 @@ function artistFormHTML(p) {
         <div class="field"><label>Twitch</label><input id="${p}s_tw" placeholder="@handle o URL"></div>
       </div>
     </section>
+
+    <section class="fsec music">
+      <h2 class="fsec-h">Musica</h2>
+      <div class="row">
+        <div class="field"><label>Tipo di Show</label><div class="chips" id="${p}showChips"></div></div>
+        <div class="field" style="max-width:150px"><label>On Stage</label><input id="${p}on_stage" type="number" min="0" placeholder="4"></div>
+        <div class="field" style="max-width:170px"><label>Durata set (min)</label><input id="${p}durata_set_min" type="number" min="0" placeholder="90"></div>
+      </div>
+      <div class="field"><label>Generi <span class="hint" style="display:inline" id="${p}genreMaxHint">(max 1)</span></label><div class="chips" id="${p}genreChips"></div></div>
+    </section>
+
 
     <section class="fsec money">
       <h2 class="fsec-h">Cachet & sconti</h2>
