@@ -25,10 +25,14 @@
 .nf-dot{width:8px;height:8px;border-radius:50%;background:var(--brand);flex:none;margin-top:6px}
 .nf-empty{padding:26px 18px;text-align:center;color:var(--muted);font-size:13.5px}
 /* segmented control riepilogo (7a) */
-.seg{display:inline-flex;background:#f2f2f2;border-radius:11px;padding:4px;gap:2px;flex-wrap:wrap}
-.seg button{font:600 13.5px var(--f-body);color:#717171;padding:9px 20px;border-radius:8px;border:0;background:none;cursor:pointer;font-family:inherit}
+.seg{display:grid;grid-template-columns:repeat(4,1fr);background:#f2f2f2;border-radius:11px;padding:4px;gap:2px;width:100%}
+.seg button{font:600 13px var(--f-body);color:#717171;padding:10px 4px;border-radius:8px;border:0;background:none;cursor:pointer;font-family:inherit;white-space:nowrap;outline:none;transition:.15s}
+.seg button:hover{color:#222}
 .seg button.on{color:#222;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.12)}
-.consent-row{display:flex;gap:8px;align-items:center;font-size:12.5px;color:var(--muted);margin-top:12px}
+@media(max-width:420px){.seg button{font-size:12px}}
+.consent-row{display:flex;gap:10px;align-items:center;font-size:12.5px;color:var(--muted);margin-top:14px}
+.consent-row .switch .slider:before{width:18px;height:18px}
+.consent-row .switch input:checked + .slider:before{transform:translateX(18px)}
 .savebar{display:flex;justify-content:flex-end;margin-top:18px}
 </style>
 </head>
@@ -97,7 +101,7 @@
             <button type="button" data-f="weekly">Settimanale</button>
             <button type="button" data-f="monthly">Mensile</button>
           </div>
-          <label class="consent-row"><input type="checkbox" id="ep_consent" style="width:auto"> Acconsento a ricevere queste email da Booking Roster.</label>
+          <label class="consent-row" style="cursor:pointer"><span class="switch" style="width:42px;height:24px"><input type="checkbox" id="ep_consent"><span class="slider"></span></span><span style="flex:1">Acconsento a ricevere queste email da Booking Roster.</span></label>
           <div class="hint" id="ep_consentAt" style="margin-top:6px"></div>
           <div class="savebar"><button class="btn primary sm">Salva preferenze</button></div>
         </form>
