@@ -163,14 +163,16 @@ if ($mode === 'uno') {
 }
 
 // mode "piu": schema fisso a 5 righe, sempre 6 posti totali (paganti + aperture).
+// Ogni riga pesca le proprie aperture in modo indipendente (senza escludere quelle già usate
+// nelle righe precedenti): con pochi artisti "senza impegno" nel roster, la riga 1 (che ne
+// chiede fino a 5) esaurirebbe il pool ed escluderebbe le aperture da tutte le righe successive.
+// Qualche ripetizione tra righe è accettabile: sono proposte alternative, non un'unica lista.
 $scheme = [[1, 5], [2, 4], [3, 3], [4, 2], [5, 1]];
-$usedOpenerIds = [];
 $out = [];
 foreach ($scheme as [$paidN, $openN]) {
   $combo = pick_n_artists($pool, $paidN, $loBound, $hiBound);
   if (!$combo) continue;   // nessuna combinazione da $paidN artisti in budget: riga omessa
-  $openers = fetch_openers($genres, $usedOpenerIds, $openN);
-  foreach ($openers as $op) $usedOpenerIds[] = $op['user_id'];
+  $openers = fetch_openers($genres, [], $openN);
   $out[] = [
     'paidCount' => $paidN, 'openersCount' => count($openers),
     'artists' => $combo['artists'], 'openers' => $openers, 'total' => $combo['total'],
