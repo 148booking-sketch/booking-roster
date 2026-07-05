@@ -123,27 +123,36 @@ function fetch_openers(array $genres, array $exclude, int $limit): array {
  * sempre) ma mescolati per variare a ogni chiamata; alcuni tentativi casuali, nessuna ricerca
  * esaustiva (il pool è già ristretto, sufficiente per un roster reale).
  */
-function pick_n_artists(array $pool, int $n, float $lo, float $hi, int $tries = 40): ?array {
+function pick_n_artists(array $pool, int $n, float $lo, float $hi, int $tries = 60): ?array {
   if ($n <= 0 || count($pool) < $n) return null;
   $byPrice = $pool;
   usort($byPrice, fn($a, $b) => $a['price'] <=> $b['price']);
-  $candidates = array_slice($byPrice, 0, max($n * 4, 12));
+  $candidates = array_slice($byPrice, 0, max($n * 6, 16));
+  // Prova molte combinazioni casuali e tiene la MIGLIORE (quella che usa più budget), non la prima
+  // valida trovata: la richiesta è "usa sempre più budget possibile", la varietà resta nel mescolamento.
+  $best = null;
   for ($t = 0; $t < $tries; $t++) {
     $sample = $candidates;
     shuffle($sample);
     $picked = array_slice($sample, 0, $n);
-    if (count($picked) < $n) return null;
+    if (count($picked) < $n) continue;
     $total = array_sum(array_column($picked, 'price'));
-    if ($total >= $lo && $total <= $hi) return ['artists' => $picked, 'total' => $total];
+    if ($total < $lo || $total > $hi) continue;
+    if ($best === null || $total > $best['total']) $best = ['artists' => $picked, 'total' => $total];
   }
-  return null;
+  return $best;
 }
 
 if ($mode === 'uno') {
   $matches = array_values(array_filter($pool, fn($a) => $a['price'] >= $loBound && $a['price'] <= $hiBound));
-  // pool già mescolato: i primi 6 sono una selezione casuale tra i compatibili, diversa a ogni click
+  usort($matches, fn($a, $b) => $b['price'] <=> $a['price']);   // usa più budget possibile = prezzo più alto prima
+  // il migliore (uso massimo del budget) sempre primo; gli altri 5 variano a ogni click tra le opzioni successive
+  $best = array_slice($matches, 0, 1);
+  $rest = array_slice($matches, 1, 20);
+  shuffle($rest);
+  $chosen = array_merge($best, array_slice($rest, 0, 5));
   ok([
-    'suggestions' => array_map(fn($a) => ['artists' => [$a], 'total' => $a['price']], array_slice($matches, 0, 6)),
+    'suggestions' => array_map(fn($a) => ['artists' => [$a], 'total' => $a['price']], $chosen),
     'openers' => fetch_openers($genres, [], 2),
   ]);
 }
