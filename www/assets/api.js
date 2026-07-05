@@ -39,7 +39,7 @@ const ERR = {
   itunes_lookup_failed:'Verifica non disponibile al momento, riprova più tardi',
   itunes_artist_not_found:'Profilo Apple Music non trovato: controlla il link',
   forbidden_management:'Accesso riservato agli account agenzia',
-  account_pending:'Account in attesa di approvazione dallo staff 148',
+  account_pending:'Account in attesa di approvazione dallo staff di Booking Roster',
   forbidden_not_owner:'Questo artista non è gestito dal tuo account',
   applemusic_required:'Serve il link Apple Music per verificare l’artista',
   not_eligible:'Artista non idoneo: servono almeno 4 brani pubblicati negli ultimi 2 anni',

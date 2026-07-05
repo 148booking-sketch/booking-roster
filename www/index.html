@@ -85,31 +85,20 @@
 .sicon.on{color:var(--txt);border-color:var(--txt);opacity:1}
 .sicon.on .sic-ic{filter:none;opacity:1}
 /* CTA registrazione artisti / promoter */
-.cta-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:10px 0 4px}
-@media(max-width:900px){.cta-grid{grid-template-columns:1fr}}
-.artist-cta{position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:flex-start;gap:20px;border-radius:22px;padding:32px 34px;isolation:isolate}
-.artist-cta-glow{position:absolute;inset:0;pointer-events:none;z-index:0}
-.artist-cta-tx{position:relative;z-index:1}
-.artist-cta-badge{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.02em;border-radius:999px;padding:5px 13px;margin-bottom:14px}
-.artist-cta-tx h2{font-family:var(--f-display);font-size:24px;font-weight:700;letter-spacing:-.01em;margin:0 0 10px;color:#fff}
-.artist-cta-tx p{color:rgba(255,255,255,.68);font-size:14.5px;line-height:1.6;margin:0}
-.artist-cta-btn{position:relative;z-index:1;flex:none;display:inline-flex;align-items:center;gap:9px;background:#fff;font-weight:700;font-size:15px;text-decoration:none;padding:14px 24px;border-radius:12px;transition:.18s;box-shadow:0 8px 22px rgba(0,0,0,.35)}
-.artist-cta-btn:hover{color:#fff;transform:translateY(-1px)}
-.artist-cta-btn .arrow{transition:.18s}
-.artist-cta-btn:hover .arrow{transform:translateX(3px)}
 /* artista — celeste, come la spunta verificato */
-.cta-blue{background:radial-gradient(140% 140% at 0% 0%,#0f2333 0%,#0a1620 55%,#070f16 100%)}
-.cta-blue .artist-cta-glow{background:radial-gradient(60% 90% at 85% 20%,rgba(29,155,240,.45),transparent 70%)}
-.cta-blue .artist-cta-badge{color:#8fd4ff;background:rgba(29,155,240,.16);border:1px solid rgba(255,255,255,.14)}
-.cta-blue .artist-cta-btn{color:#0a1620}
-.cta-blue .artist-cta-btn:hover{background:#1d9bf0}
 /* promoter — rosa/brand */
-.cta-pink{background:radial-gradient(140% 140% at 0% 0%,#2a0f1a 0%,#180a12 55%,#0f0710 100%)}
-.cta-pink .artist-cta-glow{background:radial-gradient(60% 90% at 85% 20%,rgba(213,36,84,.45),transparent 70%)}
-.cta-pink .artist-cta-badge{color:#ffb3c6;background:rgba(213,36,84,.16);border:1px solid rgba(255,255,255,.14)}
-.cta-pink .artist-cta-btn{color:#180a12}
-.cta-pink .artist-cta-btn:hover{background:var(--brand)}
-@media(max-width:640px){.artist-cta{padding:26px}.artist-cta-btn{width:100%;justify-content:center}}
+/* CTA registrazione in home: stesse card ruolo della pagina /registrati */
+.reg-cta{background:#fff;border:1px solid var(--line);border-radius:16px;padding:30px;margin:10px 0 4px;box-shadow:0 6px 20px rgba(0,0,0,.06)}
+.reg-cta .rct{font:700 22px var(--f-display);letter-spacing:-.4px;margin:0;text-align:center}
+.reg-cta .rcs{font-size:13.5px;color:var(--muted);margin:3px 0 0;text-align:center}
+.role-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:11px;margin-top:22px;max-width:720px;margin-left:auto;margin-right:auto}
+@media(max-width:720px){.role-grid{grid-template-columns:1fr}}
+.role-card{border:1px solid var(--line);background:#fff;border-radius:13px;padding:22px 14px;text-align:center;text-decoration:none;color:inherit;transition:.15s;display:block}
+.role-card:hover{border-color:var(--brand);background:#fdf5f8;box-shadow:0 6px 20px rgba(0,0,0,.05)}
+.role-card .ic{display:flex;justify-content:center;color:var(--muted);margin-bottom:8px;transition:.15s}
+.role-card:hover .ic{color:var(--brand)}
+.role-card h3{font-family:var(--f-display);font-size:15.5px;font-weight:700;margin:0}
+.role-card p{color:var(--muted);font-size:12px;margin:3px 0 0}
 </style>
 </head>
 <body>
@@ -206,26 +195,26 @@
     </section>
 
 
-    <div class="cta-grid">
-      <section class="artist-cta cta-blue" id="artistCta">
-        <div class="artist-cta-glow"></div>
-        <div class="artist-cta-tx">
-          <span class="artist-cta-badge">Incluso gratis · link in bio</span>
-          <h2>Sei un artista?</h2>
-          <p>Registrati su Booking Roster e fatti trovare dai promoter: pubblica il tuo profilo con cachet, disponibilità e generi. Foto, biografia, statistiche e link in bio si aggiornano da soli — meno fatica per te, così pensi solo alla musica. In regalo ricevi il tuo link in bio personalizzato, gratuito, per raccogliere tutti i tuoi social in un'unica pagina.</p>
-        </div>
-        <a class="artist-cta-btn" href="/registrati-artista.html">Registrati gratis<span class="arrow">→</span></a>
-      </section>
-
-      <section class="artist-cta cta-pink" id="promoterCta">
-        <div class="artist-cta-glow"></div>
-        <div class="artist-cta-tx">
-          <span class="artist-cta-badge">Tutti gli artisti che vuoi</span>
-          <h2>Sei un promoter?</h2>
-          <p>Registrati su Booking Roster e cerca l'artista giusto per il tuo evento filtrando per budget, distanza e genere. I cachet sono spesso trattabili e alcuni artisti si esibiscono anche solo a rimborso spese.</p>
-        </div>
-        <a class="artist-cta-btn" href="/registrati-promoter.html">Registrati gratis<span class="arrow">→</span></a>
-      </section>
+    <div class="reg-cta" id="regCta">
+      <h2 class="rct">Crea il tuo account</h2>
+      <p class="rcs">Scegli come vuoi usare Booking Roster</p>
+      <div class="role-grid">
+        <a class="role-card" href="/registrati-artista.html">
+          <div class="ic" data-ic="mic" data-ic-size="24" data-ic-stroke="1.7"></div>
+          <h3>Artista</h3>
+          <p>Voglio essere scritturato</p>
+        </a>
+        <a class="role-card" href="/registrati-promoter.html">
+          <div class="ic" data-ic="speaker" data-ic-size="24" data-ic-stroke="1.7"></div>
+          <h3>Promoter</h3>
+          <p>Cerco artisti per eventi</p>
+        </a>
+        <a class="role-card" href="/registrati-management.html">
+          <div class="ic" data-ic="agency" data-ic-size="24" data-ic-stroke="1.7"></div>
+          <h3>Agenzia</h3>
+          <p>Gestisco un roster</p>
+        </a>
+      </div>
     </div>
   </div>
 </main>
@@ -263,7 +252,8 @@ async function init(){
   await renderNav();
   applyParamsFromURL();
   const me=await getMe();
-  if(me.user){ document.querySelector('.cta-grid').style.display='none'; }
+  if(me.user){ const rc=document.getElementById('regCta'); if(rc) rc.style.display='none'; }
+  injectIcons();
   CAN_SORT_PRICE = !!(me.user && me.user.role==='promoter');
   renderSortIcons();
   genres=(await api('genres.php')).genres.filter(g=>g.cnt>0);
