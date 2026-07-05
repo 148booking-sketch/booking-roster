@@ -3,19 +3,19 @@
  * POST /api/lineup-suggest.php   (solo promoter verificati/admin: serve vedere i cachet)
  * Body: { budget, mode: "uno"|"piu", genres?: [slug,...] }
  *
- * Consiglia artisti (pubblicati, con cachet noto — esclusi quelli in trattativa riservata,
- * il cui prezzo non è mai in chiaro) il cui compenso, singolo o sommato, rientra nel budget
- * indicato usandone almeno il 10% (evita di suggerire cachet trascurabili) e fino al 10% IN PIÙ
- * del budget (es. budget 10.000 → fino a 11.000), per non scartare combinazioni quasi perfette.
+ * Consiglia artisti pubblicati con cachet noto (esclusi quelli in trattativa riservata, il
+ * cui prezzo non è mai in chiaro).
  *
- * mode "uno": lista di artisti singoli, ordine casuale tra i compatibili (variano a ogni click).
- * mode "piu": 2-3 combinazioni di line-up (2-4 artisti) che assieme si avvicinano al budget —
- *   costruite con un greedy "riempi il budget" a partire da punti di ingresso diversi in un pool
- *   RIMESCOLATO a ogni chiamata (niente subset-sum esaustivo: il pool è già ristretto, e mescolarlo
- *   è ciò che fa apparire combinazioni diverse cliccando più volte con lo stesso budget/generi).
+ * mode "uno": artisti singoli con cachet ENTRO IL 20% dal budget indicato (es. budget 5.000 →
+ *   mostra artisti da 4.000 a 6.000). Ordine casuale tra i compatibili: variano a ogni click.
+ *   Propone anche fino a 2 artisti "senza impegno" (cachet 0) come apertura.
  *
- * Oltre alla lista principale, propone SEMPRE (indipendentemente da budget/modalità) fino a 2
- * artisti "senza impegno" (cachet 0, disponibili per aperture), utile per completare la serata.
+ * mode "piu": SEMPRE 4 righe con lo schema fisso (paganti + aperture, sempre 5 posti totali):
+ *   2 artisti + 3 aperture · 3 artisti + 2 aperture · 4 artisti + 1 apertura · 5 artisti soli.
+ *   Gli artisti paganti di ogni riga sommano tra il 10% e il 110% del budget (tolleranza +10%
+ *   per non scartare combinazioni quasi perfette); pool e aperture rimescolati a ogni chiamata,
+ *   quindi anche a parità di budget/generi le righe cambiano a ogni click. Una riga per cui non
+ *   si trova una combinazione valida viene semplicemente omessa (mai un errore).
  */
 require_once __DIR__ . '/_http.php';
 require_once __DIR__ . '/_access.php';
@@ -30,11 +30,14 @@ $mode   = ($in['mode'] ?? 'uno') === 'piu' ? 'piu' : 'uno';
 $genres = array_filter(array_map('strval', (array) ($in['genres'] ?? [])));
 
 if ($budget <= 0) fail('budget_required');
-$minTotal   = $budget * 0.10;
-$budgetMax  = $budget * 1.10;   // tolleranza 10% in più, per non scartare combinazioni quasi perfette
+
+// mode "uno": finestra stretta ±20% intorno al budget indicato.
+// mode "piu": tolleranza standard, 10%-110% del budget per la somma dei paganti di ogni riga.
+if ($mode === 'uno') { $loBound = $budget * 0.8; $hiBound = $budget * 1.2; }
+else                 { $loBound = $budget * 0.1; $hiBound = $budget * 1.1; }
 
 $where  = ["ap.published = 1", "ap.trattativa_riservata = 0", "ap.cachet_min IS NOT NULL", "ap.cachet_min <= ?"];
-$params = [$budgetMax];
+$params = [$hiBound];
 
 if ($genres) {
   $ph = implode(',', array_fill(0, count($genres), '?'));
@@ -63,76 +66,100 @@ foreach ($rows as $r) {
   $promoOk = $r['cachet_promo'] !== null && (int) $r['cachet_promo'] > 0
     && ($r['promo_until'] === null || $r['promo_until'] >= $today);
   $price = $promoOk ? (int) $r['cachet_promo'] : (int) $r['cachet_min'];
-  if ($price <= 0 || $price > $budgetMax) continue;   // "senza impegno"/cachet 0: non componibile in un budget
+  if ($price <= 0 || $price > $hiBound) continue;   // "senza impegno"/cachet 0: gestiti a parte come aperture
   $pool[] = [
     'user_id' => (int) $r['user_id'], 'stage_name' => $r['stage_name'], 'slug' => $r['slug'],
     'formazione' => $r['formazione'], 'comune' => $r['comune'], 'photo_url' => $r['photo_url'],
     'verified' => (bool) $r['verified'], 'price' => $price,
   ];
 }
-shuffle($pool);   // rimescolato a ogni richiesta: stesso budget/generi → combinazioni diverse a ogni click
+shuffle($pool);   // rimescolato a ogni richiesta: stesso budget/generi → risultati diversi a ogni click
 
-// Artisti "senza impegno" (cachet 0) proposti come apertura, sempre, indipendentemente da budget/modalità.
-// Prima prova rispettando i generi scelti; se non bastano per arrivare a 2, ripiega su tutti i generi.
-function fetch_openers(array $genres, array $exclude): array {
-  $where  = ["ap.published = 1", "ap.trattativa_riservata = 0",
-             "((ap.cachet_min IS NOT NULL AND ap.cachet_min = 0) OR (ap.cachet_max IS NOT NULL AND ap.cachet_max = 0))"];
-  $params = [];
-  if ($genres) {
-    $ph = implode(',', array_fill(0, count($genres), '?'));
-    $where[] = "ap.user_id IN (
-        SELECT ag.artist_user_id FROM artist_genres ag JOIN genres g ON g.id = ag.genre_id
-        WHERE g.slug IN ($ph)
-      )";
-    foreach ($genres as $g) $params[] = $g;
+/**
+ * Artisti "senza impegno" (cachet 0), da proporre come apertura. $exclude evita di ripetere lo
+ * stesso artista tra più righe della stessa risposta. Prima prova a rispettare i generi scelti;
+ * se non bastano per raggiungere $limit, ripiega su tutti i generi.
+ */
+function fetch_openers(array $genres, array $exclude, int $limit): array {
+  if ($limit <= 0) return [];
+  $build = function (array $genres, array $exclude) use ($limit) {
+    $where  = ["ap.published = 1", "ap.trattativa_riservata = 0",
+               "((ap.cachet_min IS NOT NULL AND ap.cachet_min = 0) OR (ap.cachet_max IS NOT NULL AND ap.cachet_max = 0))"];
+    $params = [];
+    if ($genres) {
+      $ph = implode(',', array_fill(0, count($genres), '?'));
+      $where[] = "ap.user_id IN (
+          SELECT ag.artist_user_id FROM artist_genres ag JOIN genres g ON g.id = ag.genre_id
+          WHERE g.slug IN ($ph)
+        )";
+      foreach ($genres as $g) $params[] = $g;
+    }
+    if ($exclude) {
+      $ph = implode(',', array_fill(0, count($exclude), '?'));
+      $where[] = "ap.user_id NOT IN ($ph)";
+      foreach ($exclude as $id) $params[] = $id;
+    }
+    $sql = "SELECT ap.user_id, ap.stage_name, ap.slug, ap.formazione, ap.comune, ap.photo_url, ap.verified
+            FROM artist_profiles ap WHERE " . implode(' AND ', $where) . " ORDER BY RAND() LIMIT $limit";
+    $st = db()->prepare($sql);
+    $st->execute($params);
+    return array_map(fn($r) => [
+      'user_id' => (int) $r['user_id'], 'stage_name' => $r['stage_name'], 'slug' => $r['slug'],
+      'formazione' => $r['formazione'], 'comune' => $r['comune'], 'photo_url' => $r['photo_url'],
+      'verified' => (bool) $r['verified'], 'price' => 0,
+    ], $st->fetchAll());
+  };
+  $found = $build($genres, $exclude);
+  if (count($found) < $limit && $genres) {
+    $more = $build([], array_merge($exclude, array_column($found, 'user_id')));
+    $found = array_slice(array_merge($found, $more), 0, $limit);
   }
-  if ($exclude) {
-    $ph = implode(',', array_fill(0, count($exclude), '?'));
-    $where[] = "ap.user_id NOT IN ($ph)";
-    foreach ($exclude as $id) $params[] = $id;
-  }
-  $sql = "SELECT ap.user_id, ap.stage_name, ap.slug, ap.formazione, ap.comune, ap.photo_url, ap.verified
-          FROM artist_profiles ap WHERE " . implode(' AND ', $where) . " ORDER BY RAND() LIMIT 2";
-  $st = db()->prepare($sql);
-  $st->execute($params);
-  return array_map(fn($r) => [
-    'user_id' => (int) $r['user_id'], 'stage_name' => $r['stage_name'], 'slug' => $r['slug'],
-    'formazione' => $r['formazione'], 'comune' => $r['comune'], 'photo_url' => $r['photo_url'],
-    'verified' => (bool) $r['verified'], 'price' => 0,
-  ], $st->fetchAll());
+  return $found;
 }
-$openers = fetch_openers($genres, []);
-if (count($openers) < 2 && $genres) {
-  $more = fetch_openers([], array_column($openers, 'user_id'));
-  $openers = array_slice(array_merge($openers, $more), 0, 2);
+
+/**
+ * Cerca una combinazione di ESATTAMENTE $n artisti paganti la cui somma rientri in [$lo,$hi].
+ * Pesca preferibilmente tra i più economici (altrimenti con $n grande la somma sfora quasi
+ * sempre) ma mescolati per variare a ogni chiamata; alcuni tentativi casuali, nessuna ricerca
+ * esaustiva (il pool è già ristretto, sufficiente per un roster reale).
+ */
+function pick_n_artists(array $pool, int $n, float $lo, float $hi, int $tries = 40): ?array {
+  if ($n <= 0 || count($pool) < $n) return null;
+  $byPrice = $pool;
+  usort($byPrice, fn($a, $b) => $a['price'] <=> $b['price']);
+  $candidates = array_slice($byPrice, 0, max($n * 4, 12));
+  for ($t = 0; $t < $tries; $t++) {
+    $sample = $candidates;
+    shuffle($sample);
+    $picked = array_slice($sample, 0, $n);
+    if (count($picked) < $n) return null;
+    $total = array_sum(array_column($picked, 'price'));
+    if ($total >= $lo && $total <= $hi) return ['artists' => $picked, 'total' => $total];
+  }
+  return null;
 }
 
 if ($mode === 'uno') {
-  $matches = array_values(array_filter($pool, fn($a) => $a['price'] >= $minTotal));
+  $matches = array_values(array_filter($pool, fn($a) => $a['price'] >= $loBound && $a['price'] <= $hiBound));
   // pool già mescolato: i primi 6 sono una selezione casuale tra i compatibili, diversa a ogni click
   ok([
     'suggestions' => array_map(fn($a) => ['artists' => [$a], 'total' => $a['price']], array_slice($matches, 0, 6)),
-    'openers' => $openers,
+    'openers' => fetch_openers($genres, [], 2),
   ]);
 }
 
-// mode "piu": alcuni tentativi greedy da punti di partenza diversi (nel pool mescolato), poi dedup.
-$lineups = [];
-$tryStartFrom = array_slice(array_keys($pool), 0, min(6, count($pool)));
-foreach ($tryStartFrom as $startIdx) {
-  $used = []; $total = 0; $picked = [];
-  $order = array_merge([$startIdx], array_diff(array_keys($pool), [$startIdx]));
-  foreach ($order as $i) {
-    if (count($picked) >= 4) break;
-    $a = $pool[$i];
-    if (isset($used[$a['user_id']])) continue;
-    if ($total + $a['price'] <= $budgetMax) { $picked[] = $a; $total += $a['price']; $used[$a['user_id']] = true; }
-  }
-  if (count($picked) >= 2 && $total >= $minTotal) {
-    $ids = array_column($picked, 'user_id'); sort($ids);
-    $dedupKey = implode(',', $ids);
-    if (!isset($lineups[$dedupKey])) $lineups[$dedupKey] = ['artists' => $picked, 'total' => $total];
-  }
+// mode "piu": schema fisso a 4 righe, sempre 5 posti totali (paganti + aperture).
+$scheme = [[2, 3], [3, 2], [4, 1], [5, 0]];
+$usedOpenerIds = [];
+$out = [];
+foreach ($scheme as [$paidN, $openN]) {
+  $combo = pick_n_artists($pool, $paidN, $loBound, $hiBound);
+  if (!$combo) continue;   // nessuna combinazione da $paidN artisti in budget: riga omessa
+  $openers = fetch_openers($genres, $usedOpenerIds, $openN);
+  foreach ($openers as $op) $usedOpenerIds[] = $op['user_id'];
+  $out[] = [
+    'paidCount' => $paidN, 'openersCount' => count($openers),
+    'artists' => $combo['artists'], 'openers' => $openers, 'total' => $combo['total'],
+  ];
 }
-usort($lineups, fn($a, $b) => $b['total'] <=> $a['total']);
-ok(['suggestions' => array_slice(array_values($lineups), 0, 3), 'openers' => $openers]);
+ok(['rows' => $out]);

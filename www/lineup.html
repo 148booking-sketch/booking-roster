@@ -49,6 +49,23 @@
 .lu-bar{flex:1;min-width:140px;height:8px;border-radius:5px;background:var(--panel2);overflow:hidden}
 .lu-bar i{display:block;height:100%;background:var(--brand);border-radius:5px}
 .lu-pct{font-size:12px;color:var(--muted);white-space:nowrap}
+
+/* Righe "più artisti" — design 15a: card compatta, griglia a 5 posti (paganti + aperture) */
+.lu-rowcard{background:#fff;border:1px solid var(--line2);border-radius:16px;box-shadow:var(--shadow);padding:16px 20px}
+.lu-row-h{display:flex;align-items:center;gap:7px;margin-bottom:14px}
+.lu-row-h .dot{width:7px;height:7px;border-radius:50%;background:var(--brand);flex:none}
+.lu-row-h .lbl{font:700 12px var(--f-body);color:var(--muted)}
+.lu-row-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+.lu-slot{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;min-width:0}
+.lu-av-wrap{position:relative}
+.lu-slot .av{width:68px;height:68px;border-radius:14px;overflow:hidden;color:#fff;display:flex;align-items:center;justify-content:center;font:700 22px var(--f-display)}
+.lu-slot .av img{width:100%;height:100%;object-fit:cover}
+.lu-slot.opener .av{box-shadow:0 0 0 2px #fff,0 0 0 4px #0a7d38}
+.lu-slot-badge{position:absolute;top:-9px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:3px;font:700 9px var(--f-body);letter-spacing:.03em;text-transform:uppercase;color:#fff;background:#0a7d38;border-radius:20px;padding:3px 8px;white-space:nowrap}
+.lu-slot .nm2{display:flex;align-items:center;gap:4px;font:600 13px var(--f-body);line-height:1.2;justify-content:center}
+.lu-slot .pr2{font-size:12px;color:var(--muted)}
+.lu-slot.opener .pr2{font:700 12px var(--f-body);color:#0a7d38}
+@media(max-width:640px){.lu-row-grid{grid-template-columns:repeat(3,1fr);row-gap:20px}}
 </style>
 </head>
 <body>
@@ -164,6 +181,37 @@ function openersCardHtml(openers){
     <div class="lu-artists">${openers.map(a=>luArtistHtml(a,'Senza impegno')).join('')}</div>
   </div>`;
 }
+/* riga "più artisti" (design 15a): griglia a 5 posti, paganti + aperture, sempre 5 in totale */
+function luSlotHtml(a, opts){
+  const isOpener = !!opts.opener;
+  const ph = a.photo_url ? `<img src="${esc(a.photo_url)}" referrerpolicy="no-referrer" alt="">` : (avatarInitials(a.stage_name||'A'));
+  const avStyle = a.photo_url ? '' : `background:${avatarColor(a.stage_name||'A')}`;
+  const badge = isOpener ? `<span class="lu-slot-badge">${icon('star',9,2)}Apertura</span>` : '';
+  const price = isOpener ? 'Gratis' : eur(a.price);
+  return `<a class="lu-slot${isOpener?' opener':''}" href="/${esc(a.slug||'')}" target="_blank" rel="noopener">
+    <div class="lu-av-wrap"><div class="av" style="${avStyle}">${ph}</div>${badge}</div>
+    <div class="nm2">${esc(a.stage_name||'Artista')}${a.verified?'<span class="vchk" style="width:13px;height:13px;font-size:7px">✓</span>':''}</div>
+    <div class="pr2">${price}</div>
+  </a>`;
+}
+function rowCardHtml(row, budget){
+  const pct = Math.min(100, Math.round(row.total/budget*100));
+  const slots = [
+    ...row.artists.map(a=>luSlotHtml(a,{opener:false})),
+    ...row.openers.map(a=>luSlotHtml(a,{opener:true})),
+  ];
+  while(slots.length<5) slots.push('<div></div>');
+  const lbl = row.openersCount>0 ? `${row.paidCount} artist${row.paidCount===1?'a':'i'} + ${row.openersCount} apertur${row.openersCount===1?'a':'e'}` : `${row.paidCount} artisti`;
+  return `<div class="lu-rowcard">
+    <div class="lu-row-h"><span class="dot"></span><span class="lbl">${lbl}</span></div>
+    <div class="lu-row-grid">${slots.join('')}</div>
+    <div class="lu-total">
+      <span class="amt">${eur(row.total)}</span>
+      <div class="lu-bar"><i style="width:${pct}%"></i></div>
+      <span class="lu-pct">${pct}% del budget</span>
+    </div>
+  </div>`;
+}
 async function submitLineup(){
   const budget=+document.getElementById('lu_budget').value||0;
   if(budget<=0){ toast('Indica un budget valido', true); return; }
@@ -173,6 +221,13 @@ async function submitLineup(){
   box.innerHTML='<div class="lu-empty">Cerco la combinazione migliore…</div>';
   try{
     const r=await api('lineup-suggest.php',{method:'POST',body:{budget,mode,genres:gs}});
+    if(mode==='piu'){
+      const rows=r.rows||[];
+      box.innerHTML = rows.length
+        ? rows.map(row=>rowCardHtml(row,budget)).join('')
+        : '<div class="lu-empty">Nessuna combinazione trovata per questo budget/generi.<br>Prova ad alzare il budget o allargare i generi.</div>';
+      return;
+    }
     const list=r.suggestions||[];
     const openers=r.openers||[];
     const parts=[];
