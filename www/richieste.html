@@ -92,6 +92,15 @@ function fmtShort(s){ const d=parseD(s); if(!d||isNaN(d)) return '';
 function fmtTime(s){ const d=parseD(s); if(!d||isNaN(d)) return '';
   return `${d.getDate()}/${d.getMonth()+1} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; }
 
+/* compenso mostrato: offerta storica se presente, altrimenti il cachet attuale del profilo */
+function feeOf(rq){
+  if(rq.proposed_fee!=null) return eur(rq.proposed_fee);
+  const promoOk = rq.cachet_promo!=null && (+rq.cachet_promo>0) && (!rq.promo_until || rq.promo_until >= new Date().toISOString().slice(0,10));
+  const v = promoOk ? rq.cachet_promo : (rq.cachet_min ?? rq.cachet_max);
+  if(v==null) return '—';
+  if(+v===0) return 'Senza impegno';
+  return 'da '+eur(v);
+}
 async function init(){
   const me = await getMe(true);
   if(!me.user){ location.href='/accedi.html'; return; }
@@ -149,7 +158,7 @@ function renderTable(){
         <div style="min-width:0"><div class="nm">${esc(who)}</div><div class="mt">${rq.status==='vista'?'vista':'inviata'} ${fmtShort(rq.created_at)}</div></div>
       </div>
       <div style="font-size:13px;color:#444">${rq.event_date?fmtShort(rq.event_date):'Da concordare'}</div>
-      <div style="font-size:13px;font-weight:600">${rq.proposed_fee!=null?eur(rq.proposed_fee):'—'}</div>
+      <div style="font-size:13px;font-weight:600">${feeOf(rq)}</div>
       <div><span class="rqt-st" style="color:${st[1]};background:${st[2]}">${st[0]}</span></div>
       <div class="rqt-actions">
         ${pending?`<button class="abtn danger" onclick="respond(${rq.id},'ritira')">Ritira</button>`:''}
@@ -191,8 +200,8 @@ function renderCards(){
       <div class="rq-grid">
         <div class="rq-box"><div class="rq-box-l">${icon('calendar',13)} Data evento</div>
           <div class="rq-box-v">${rq.event_date?fmtLong(rq.event_date):'Da concordare'}</div></div>
-        <div class="rq-box"><div class="rq-box-l">${icon('euro',13)} Offerta economica</div>
-          <div class="rq-box-v money">${rq.proposed_fee!=null?eur(rq.proposed_fee):'Da concordare'}</div></div>
+        <div class="rq-box"><div class="rq-box-l">${icon('euro',13)} Compenso</div>
+          <div class="rq-box-v money">${feeOf(rq)}</div></div>
       </div>
       ${rq.message?`<div class="rq-msg">${esc(rq.message)}</div>`:''}
       <div class="rq-actions">

@@ -336,7 +336,7 @@ async function renderNav(center = '') {
     right = navBell() + navUser(u, [['/profilo.html', 'Il mio profilo', 'mic'], ['/richieste.html', 'Le mie richieste', 'inbox']]);
   } else if (u.role === 'admin') {
     links = link('/', 'Cerca artisti', '/') + link('/admin', 'Admin', '/admin');
-    right = navBell() + navUser(u, [['/admin', 'Pannello admin', 'shield'], ['/account.html', 'Account', 'user']]);
+    right = navBell() + navUser(u, [['/admin', 'Pannello admin', 'shield'], ['/admin#account', 'Account', 'user']]);
   } else { // promoter / management
     links = link('/', 'Cerca artisti', '/') + link('/mappa.html', 'Mappa', '/mappa')
           + link('/preferiti.html', 'Preferiti', '/preferiti') + link('/richieste.html', 'Le mie richieste', '/richieste');

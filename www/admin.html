@@ -47,6 +47,7 @@
         <div class="as-div"></div>
         <button class="as-item" id="tabAd" onclick="tab('admins')" data-ic="shield" style="display:none">Admin</button>
         <button class="as-item" id="tabS" onclick="tab('set')" data-ic="sliders">Impostazioni</button>
+        <button class="as-item" id="tabAcc" onclick="tab('account')" data-ic="user">Account</button>
       </nav>
       <div class="as-foot">
         <a class="as-item" href="/" data-ic="home">Torna al sito</a>
@@ -350,6 +351,25 @@
       </div>
       <button class="btn primary">Salva chiavi</button>
     </form>
+
+    <!-- ═══ ACCOUNT (dati dell'admin corrente) ═══ -->
+    <div id="accountW" style="display:none;max-width:560px">
+      <form class="fsec" onsubmit="return saveMyAccount(event)">
+        <h2 class="fsec-h">Dati account</h2>
+        <div class="field"><label>Nome visualizzato</label><input id="acc_name" required></div>
+        <div class="field"><label>Email</label><input id="acc_email" type="email" required>
+          <div class="hint">Se la cambi dovrai verificare il nuovo indirizzo per riaccedere.</div></div>
+        <button class="btn primary sm">Salva dati account</button>
+      </form>
+      <form class="fsec" onsubmit="return changeMyPass(event)">
+        <h2 class="fsec-h">Password</h2>
+        <div class="row">
+          <div class="field"><label>Nuova password (min 8)</label><input id="acc_pw" type="password" minlength="8" required></div>
+          <div class="field"><label>Ripeti nuova password</label><input id="acc_pw2" type="password" minlength="8" required></div>
+        </div>
+        <button class="btn primary sm">Cambia password</button>
+      </form>
+    </div>
       </div><!-- /admin-body -->
     </div><!-- /admin-main -->
   </div><!-- /panel -->
@@ -385,14 +405,14 @@ async function showPanel(me){
   artistFormReset('a_');
   comuniAutocomplete(document.getElementById('p_comune'), (n,pr)=> p_prov.value = pr);
   initListFilters();
-  tab('dash');
+  tab(location.hash==='#account' ? 'account' : 'dash');
 }
 
 let CUR = 'dash';
 /* "agenzia" è una vista alternativa dello STESSO pannello promoterW (stessa tabella dati,
  * promoter_profiles, filtrata per role) — non un pannello duplicato. promoMode ricorda quale. */
 let promoMode = 'promoter';
-const TABS = {dash:['dashW',tabD], artisti:['artistiW',tabA], promoter:['promoterW',tabP], agenzia:['promoterW',tabG], richieste:['richiesteW',tabR], admins:['adminsW',tabAd], set:['settingsW',tabS]};
+const TABS = {dash:['dashW',tabD], artisti:['artistiW',tabA], promoter:['promoterW',tabP], agenzia:['promoterW',tabG], richieste:['richiesteW',tabR], admins:['adminsW',tabAd], set:['settingsW',tabS], account:['accountW',tabAcc]};
 const VIEW_META = {
   dash:['Panoramica','Numeri chiave e code di lavoro'],
   artisti:['Artisti','Crea, approva e modifica gli artisti del roster'],
@@ -401,6 +421,7 @@ const VIEW_META = {
   richieste:['Richieste','Le richieste di booking promoter → artista'],
   admins:['Amministratori','Gestione degli account admin'],
   set:['Impostazioni','Chiavi statistiche e configurazione'],
+  account:['Account','I tuoi dati di accesso'],
 };
 function setSideBadge(id, n){ const el=document.getElementById(id); if(!el) return; el.textContent=n; el.style.display = n>0 ? '' : 'none'; }
 function tab(t){
@@ -418,6 +439,7 @@ function tab(t){
   else if (t==='admins'){ showAdminList(); loadAdmins(); }
   else if (t==='dash') loadDash();
   else if (t==='set') loadSettings();
+  else if (t==='account') loadMyAccount();
 }
 /* viste elenco ↔ form dentro le sezioni Artisti/Promoter */
 function showArtistForm(){ artistiList.style.display='none'; formA.style.display=''; }
@@ -947,6 +969,29 @@ async function refreshStats(id, btn){
     toast('Aggiornato: '+parts.join(' · '));
   } catch(err){ toast(errMsg(err), true); }
   finally { btn.textContent = old; btn.disabled = false; }
+}
+
+/* ---- ACCOUNT dell'admin corrente ---- */
+async function loadMyAccount(){
+  const me = await getMe(true);
+  if (me.user){ acc_name.value = me.user.display_name||''; acc_email.value = me.user.email||''; }
+}
+async function saveMyAccount(e){ e.preventDefault();
+  try {
+    const r = await api('account-save.php',{method:'POST',body:{display_name:acc_name.value, email:acc_email.value}});
+    _me=null;
+    toast(r.email_changed ? 'Email aggiornata: verifica il nuovo indirizzo per riaccedere.' : 'Dati account salvati ✓');
+    asName.textContent = acc_name.value;
+  } catch(err){ toast(errMsg(err), true); }
+  return false;
+}
+async function changeMyPass(e){ e.preventDefault();
+  if (acc_pw.value !== acc_pw2.value){ toast('Le due password non coincidono', true); return false; }
+  try {
+    await api('password-change.php',{method:'POST',body:{new_password:acc_pw.value}});
+    toast('Password aggiornata ✓'); acc_pw.value=acc_pw2.value='';
+  } catch(err){ toast(errMsg(err), true); }
+  return false;
 }
 
 /* ---- GATE (login / bootstrap) ---- */

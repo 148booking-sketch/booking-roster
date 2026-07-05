@@ -10,27 +10,39 @@ require_once __DIR__ . '/_http.php';
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 
 if ($method === 'GET') {
+  require_once __DIR__ . '/_access.php';
   $u = require_user();
   $box = $_GET['box'] ?? ($u['role'] === 'artist' ? 'received' : 'sent');
   if ($box === 'received') {
+    // Il "compenso" mostrato è il cachet del profilo artista (il proprio: sempre visibile).
     $st = db()->prepare(
-      'SELECT br.*, up.display_name AS promoter_name, pp.org_name
+      'SELECT br.*, up.display_name AS promoter_name, pp.org_name,
+              ap.cachet_min, ap.cachet_max, ap.cachet_promo, ap.promo_until
        FROM booking_requests br
        JOIN users up ON up.id = br.promoter_user_id
        LEFT JOIN promoter_profiles pp ON pp.user_id = br.promoter_user_id
+       JOIN artist_profiles ap ON ap.user_id = br.artist_user_id
        WHERE br.artist_user_id = ? ORDER BY br.created_at DESC'
     );
     $st->execute([$u['id']]);
+    $rows = $st->fetchAll();
   } else {
     $st = db()->prepare(
-      'SELECT br.*, ap.stage_name
+      'SELECT br.*, ap.stage_name,
+              ap.cachet_min, ap.cachet_max, ap.cachet_promo, ap.promo_until
        FROM booking_requests br
        JOIN artist_profiles ap ON ap.user_id = br.artist_user_id
        WHERE br.promoter_user_id = ? ORDER BY br.created_at DESC'
     );
     $st->execute([$u['id']]);
+    $rows = $st->fetchAll();
+    // Stessa regola dei prezzi di tutto il sito: i cachet solo a promoter verificati/admin.
+    if (!viewer_can_see_prices($u)) {
+      foreach ($rows as &$r) { $r['cachet_min'] = $r['cachet_max'] = $r['cachet_promo'] = $r['promo_until'] = null; }
+      unset($r);
+    }
   }
-  ok(['requests' => $st->fetchAll()]);
+  ok(['requests' => $rows]);
 }
 
 /**
