@@ -207,7 +207,8 @@ const GENRE_ICONS = {
   pop:'🎤', rock:'🎸', indie:'🎧', cantautore:'🎼', 'rap-hiphop':'🎙️', trap:'💿',
   elettronica:'🎛️', 'house-techno':'🔊', jazz:'🎷', blues:'🎺', 'funk-soul':'🕺',
   reggae:'🥁', folk:'🪕', metal:'🤘', punk:'⚡', classica:'🎻',
-  'tributo-cover':'🎭', 'dance-commerciale':'🪩', world:'🌍', hard:'🔞', format:'🎪'
+  'tributo-cover':'🎭', 'dance-commerciale':'🪩', world:'🌍', hard:'🔞', format:'🎪',
+  latin:'🌴', rnb:'🎶', country:'🤠', gospel:'🙏', ambient:'🌙', ska:'🕶️'
 };
 
 /* tipi di show (ex "formazione") — slug ↔ etichetta, condivisi in tutto il frontend */

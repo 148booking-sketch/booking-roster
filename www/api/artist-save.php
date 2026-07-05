@@ -53,9 +53,9 @@ $wasSt->execute([$u['id']]);
 $wasRow = $wasSt->fetch();
 $wasBioFromSpotify = (int) ($wasRow['bio_from_spotify'] ?? 0);
 $wasSocials = json_decode($wasRow['socials'] ?? '', true) ?: [];
-// Il limite generi (1 per i non verificati, 3 per i verificati) segue il flag "verified" già in
+// Il limite generi (3 per i non verificati, illimitati per i verificati) segue il flag "verified" già in
 // DB: l'artista non può cambiarlo da sé, quindi qui vale solo lo stato attuale, non il payload.
-$maxGenres = (int) ($wasRow['verified'] ?? 0) === 1 ? 3 : 1;
+$maxGenres = (int) ($wasRow['verified'] ?? 0) === 1 ? PHP_INT_MAX : 3;
 
 // Backline & scheda tecnica
 require_once __DIR__ . '/_gear.php';

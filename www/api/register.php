@@ -61,7 +61,7 @@ if (in_array($role, ['promoter','management'], true)) {
   $dupSt->execute([$stage]);
   if ($dupSt->fetchColumn()) fail('stage_name_taken', 409);
 
-  // Idoneità Apple Music/iTunes (≥4 brani/2 anni) — ri-verificata server-side.
+  // Idoneità Apple Music/iTunes (≥2 brani/12 mesi e ≥6 totali) — ri-verificata server-side.
   $elig = itunes_eligibility($appleMusic);
   if (!$elig['eligible']) fail('not_eligible', 422, ['track_count' => $elig['track_count'] ?? 0]);
 

@@ -4,7 +4,7 @@
  * Crea un artista GESTITO dal booking corrente. Come admin-create-artist.php ma:
  *   - il proprietario è il booking loggato (manager_user_id);
  *   - l'artista è sempre "gestito" (email/password auto-generate, nessun login proprio);
- *   - deve superare l'idoneità iTunes (≥4 brani in 2 anni) → nasce verified=1, published=1;
+ *   - deve superare l'idoneità iTunes (≥2 brani/12 mesi e ≥6 totali) → nasce verified=1, published=1;
  *   - il booking non decide stato/featured: status=active, top8=0.
  * Body: stessi campi del form condiviso (artist-form.js), + socials.applemusic obbligatorio.
  */
@@ -106,7 +106,7 @@ try {
   // Artista verificato → fino a 3 generi.
   if (isset($in['genres']) && is_array($in['genres'])) {
     $ins = $pdo->prepare('INSERT IGNORE INTO artist_genres (artist_user_id, genre_id) VALUES (?, ?)');
-    foreach (array_slice($in['genres'], 0, 3) as $gid) {
+    foreach ($in['genres'] /* artista gestito = verificato: generi illimitati */ as $gid) {
       $gid = (int)$gid;
       if ($gid > 0) $ins->execute([$uid, $gid]);
     }

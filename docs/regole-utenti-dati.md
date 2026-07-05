@@ -32,7 +32,7 @@ Sotto-livello admin: colonna `users.admin_super` (0/1). **Super admin** = pieni 
 | **nome d'arte** (unico nel roster) | ✅ | — |
 | telefono | ✅ | ✅ |
 | comune | ✅ | ✅ |
-| **verifica Apple Music/iTunes** (≥4 brani/2 anni) | ✅ | — |
+| **verifica Apple Music/iTunes** (≥2 brani/12 mesi e ≥6 totali) | ✅ | — |
 | **verifica Google Calendar** (iCal valido) | ✅ | — |
 | tipo (locale/festival/…) | — | ✅ |
 | sito web / link | — | ✅ |
@@ -44,7 +44,7 @@ Sotto-livello admin: colonna `users.admin_super` (0/1). **Super admin** = pieni 
   - promoter / management → `status = pending` (vedono i prezzi / gestiscono il roster solo dopo approvazione admin → `active`).
 
 **Wizard artista a 3 step** (`registrati-artista.html`), aggiornato 2026-07-04:
-1. **Verifica Apple Music/iTunes** — link profilo, idoneità ≥4 brani/2 anni.
+1. **Verifica Apple Music/iTunes** — link profilo, idoneità ≥2 brani/12 mesi e ≥6 totali.
 2. **Verifica Google Calendar** — indirizzo iCal segreto; deve essere valido e raggiungibile.
 3. **Dati** — nome, cognome, **nome d'arte**, telefono, comune (+ provincia auto), email, password.
 
@@ -109,9 +109,9 @@ Se manca qualcosa → `missing_fields_for_publish` con l'elenco dei campi mancan
 ## 7. Artista "verificato" (`artist_profiles.verified`) e idoneità iTunes
 
 - La spunta **verified** la assegna l'admin, oppure è **automatica** per gli artisti creati da un'agenzia.
-- **Idoneità minima** per candidarsi/essere aggiunti come artista (`artist-eligibility-check.php`, iTunes/Apple Music pubblico): **≥ 4 brani pubblicati negli ultimi 2 anni**.
+- **Idoneità minima** per candidarsi/essere aggiunti come artista (`artist-eligibility-check.php`, iTunes/Apple Music pubblico): **≥ 2 brani pubblicati negli ultimi 12 mesi** e **≥ 6 brani totali** sul profilo.
   - Ri-verificata **lato server** quando un'agenzia crea un artista (`not_eligible` se non passa).
-- **Limite generi:** artista **non verificato → max 1 genere**; **verificato → max 3**. L'artista non può cambiarsi il flag da solo (il limite segue lo stato già in DB).
+- **Limite generi:** artista **non verificato → max 3 generi**; **verificato → illimitati**. L'artista non può cambiarsi il flag da solo (il limite segue lo stato già in DB).
 
 ---
 
@@ -147,7 +147,7 @@ Se manca qualcosa → `missing_fields_for_publish` con l'elenco dei campi mancan
 - Serve `role = management` **e** `status = active` (un management `pending` accede ma non gestisce → `account_pending`).
 - Un'agenzia può **creare / aggiornare / eliminare solo i propri artisti** (`manager_user_id = suo id`, altrimenti `forbidden_not_owner`).
 - Gli artisti creati da un'agenzia:
-  - devono passare l'**idoneità iTunes** (≥4 brani/2 anni);
+  - devono passare l'**idoneità iTunes** (≥2 brani/12 mesi e ≥6 totali);
   - nascono **gestiti**: email/password **auto-generate** (alias `148booking+slug@gmail.com`), l'artista **non ha login proprio**;
   - nascono **`verified = 1`, `published = 1`, `top8 = 0`** (l'agenzia non decide featured né stato).
 

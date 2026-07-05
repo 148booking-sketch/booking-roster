@@ -1,14 +1,15 @@
 <?php
 /**
  * Verifica idoneità artista via catalogo Apple Music/iTunes (API pubblica, nessuna chiave).
- * Requisito minimo per il roster 148: almeno 4 brani pubblicati (anche feat./collab.)
- * negli ultimi 2 anni. Logica CONDIVISA da artist-eligibility-check.php (wizard registrazione)
- * e management-create-artist.php (creazione artista da parte di un booking).
+ * Requisito minimo per il roster: almeno 2 brani pubblicati negli ultimi 12 mesi
+ * E almeno 6 brani totali sul profilo (anche feat./collab.). Logica CONDIVISA da
+ * artist-eligibility-check.php (wizard registrazione) e management-create-artist.php.
  */
 require_once __DIR__ . '/_http.php';
 
 /**
- * Ritorna ['eligible'=>bool, 'track_count'=>int, 'artist_name'=>string] oppure lancia fail().
+ * Ritorna ['eligible'=>bool, 'track_count'=>int (ultimi 12 mesi), 'total_count'=>int,
+ * 'artist_name'=>string] oppure lancia fail().
  * $url = link al profilo artista Apple Music/iTunes.
  */
 function itunes_eligibility(string $url): array {
@@ -32,17 +33,19 @@ function itunes_eligibility(string $url): array {
   }
   if ($artistName === null) fail('itunes_artist_not_found', 404);
 
-  $cutoff = date('Y-m-d', strtotime('-2 years'));
-  $trackCount = 0;
+  $cutoff = date('Y-m-d', strtotime('-12 months'));
+  $recentCount = 0; $totalCount = 0;
   foreach ($results as $r) {
     if (($r['wrapperType'] ?? '') !== 'track') continue;
+    $totalCount++;
     $rd = substr((string) ($r['releaseDate'] ?? ''), 0, 10);
-    if ($rd !== '' && $rd >= $cutoff) $trackCount++;
+    if ($rd !== '' && $rd >= $cutoff) $recentCount++;
   }
 
   return [
-    'eligible'    => $trackCount >= 4,
-    'track_count' => $trackCount,
+    'eligible'    => $recentCount >= 2 && $totalCount >= 6,
+    'track_count' => $recentCount,
+    'total_count' => $totalCount,
     'artist_name' => $artistName,
   ];
 }

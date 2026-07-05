@@ -123,7 +123,7 @@
     <!-- STEP 1 (solo nuovo): idoneità Apple Music -->
     <form id="eligStep" class="panel" style="display:none;max-width:560px" onsubmit="return checkElig(event)">
       <h3 style="margin:0 0 4px" data-ic="music">Verifica idoneità</h3>
-      <p class="hint" style="margin:0 0 14px">Per aggiungere un artista al roster serve un profilo Apple Music con almeno <b>4 brani pubblicati negli ultimi 2 anni</b> (anche in feat./collaborazione).</p>
+      <p class="hint" style="margin:0 0 14px">Per aggiungere un artista al roster serve un profilo Apple Music con almeno <b>2 brani pubblicati negli ultimi 12 mesi</b> e <b>6 brani totali</b> (anche in feat./collaborazione).</p>
       <div class="field"><label>Link profilo artista Apple Music</label>
         <input type="url" id="am_url" placeholder="https://music.apple.com/it/artist/..." required>
       </div>
@@ -300,7 +300,7 @@ async function checkElig(e){ e.preventDefault();
     const r = await api('artist-eligibility-check.php',{method:'POST',body:{itunes: am_url.value}});
     if (r.eligible){
       artistFormReset('m_');
-      setGenreVerified('m_', true);              // artista gestito = verificato → fino a 3 generi
+      setGenreVerified('m_', true);              // artista gestito = verificato → generi illimitati
       const nameEl = document.getElementById('m_stage_name'); if (nameEl && r.artist_name) nameEl.value = r.artist_name;
       const amEl = document.getElementById('m_s_am'); if (amEl) amEl.value = am_url.value;
       editId = null;
@@ -314,7 +314,7 @@ async function checkElig(e){ e.preventDefault();
       eligStep.style.display='none'; artForm.style.display='';
       window.scrollTo({top:0,behavior:'smooth'});
     } else {
-      notEligMsg.textContent = `Trovati solo ${r.track_count} brani pubblicati negli ultimi 2 anni (ne servono almeno 4).`;
+      notEligMsg.textContent = `Requisiti non raggiunti: ${r.track_count} brani negli ultimi 12 mesi (min 2), ${r.total_count??'—'} totali (min 6).`;
       eligStep.style.display='none'; notElig.style.display='';
     }
   } catch(err){ toast(errMsg(err), true); }

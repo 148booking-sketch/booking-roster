@@ -265,4 +265,7 @@ INSERT IGNORE INTO genres (slug, name) VALUES
   ('metal','Metal'), ('punk','Punk'), ('classica','Classica'),
   ('tributo-cover','Tributo / Cover'),
   ('dance-commerciale','Dance commerciale'), ('world','World / Etnica'),
-  ('hard','Hard'), ('format','Format');
+  ('hard','Hard'), ('format','Format'),
+  -- macro-categorie 2026-07 (migration-22)
+  ('latin','Latin / Reggaeton'), ('rnb','R&B'), ('country','Country'),
+  ('gospel','Gospel / Spiritual'), ('ambient','Ambient / Chill'), ('ska','Ska');

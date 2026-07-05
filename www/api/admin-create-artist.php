@@ -120,7 +120,7 @@ try {
 
   if (isset($in['genres']) && is_array($in['genres'])) {
     $ins = $pdo->prepare('INSERT IGNORE INTO artist_genres (artist_user_id, genre_id) VALUES (?, ?)');
-    foreach (array_slice($in['genres'], 0, $verified ? 3 : 1) as $gid) {
+    foreach (array_slice($in['genres'], 0, $verified ? PHP_INT_MAX : 3) as $gid) {
       $gid = (int)$gid;
       if ($gid > 0) $ins->execute([$uid, $gid]);
     }

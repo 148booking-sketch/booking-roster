@@ -31,9 +31,9 @@
     <div class="field"><label>Sito web o altro link</label><input id="rg_web" placeholder="https://..." required></div>
     <div class="field"><label>Email</label><input type="email" id="rg_email" required></div>
     <div class="field"><label>Password (min 8 caratteri)</label><input type="password" id="rg_pass" minlength="8" required></div>
-    <label class="hint" style="display:flex;gap:8px;align-items:flex-start;margin:4px 0 14px">
-      <input type="checkbox" id="rg_email_consent" style="margin-top:3px">
-      <span>Voglio ricevere via email gli alert su nuovi artisti e artisti in promo (frequenza settimanale, modificabile in seguito dalle impostazioni account).</span>
+    <label style="display:flex;gap:12px;align-items:center;margin:4px 0 16px;cursor:pointer">
+      <span class="switch"><input type="checkbox" id="rg_email_consent"><span class="slider"></span></span>
+      <span class="hint" style="margin:0;flex:1">Voglio ricevere via email gli alert su nuovi artisti e artisti in promo (frequenza settimanale, modificabile dalle impostazioni account).</span>
     </label>
     <button class="btn primary" style="width:100%">Crea account</button>
     <div class="hint" style="margin-top:10px">Dopo la registrazione riceverai un'email per <b>verificare l'account</b>. I cachet e l'inserimento artisti si sbloccano quando lo staff di Booking Roster <b>approva</b> l'account.</div>

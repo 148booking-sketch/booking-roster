@@ -89,7 +89,7 @@ function artistFormHTML(p) {
         <div class="field" style="max-width:150px"><label>On Stage</label><input id="${p}on_stage" type="number" min="0" placeholder="4"></div>
         <div class="field" style="max-width:170px"><label>Durata set (min)</label><input id="${p}durata_set_min" type="number" min="0" placeholder="90"></div>
       </div>
-      <div class="field"><label>Generi <span class="hint" style="display:inline" id="${p}genreMaxHint">(max 1)</span></label><div class="chips" id="${p}genreChips"></div></div>
+      <div class="field"><label>Generi <span class="hint" style="display:inline" id="${p}genreMaxHint">(max 3)</span></label><div class="chips" id="${p}genreChips"></div></div>
     </section>
 
 
@@ -142,29 +142,29 @@ function renderGenreChips(id, selectedIds) {
   ).join('');
 }
 function toggleGenreChip(el, containerId) {
-  const max = +document.getElementById(containerId)?.dataset.max || 1;
+  const max = +document.getElementById(containerId)?.dataset.max || 3;
   if (!el.classList.contains('on') && document.querySelectorAll('#' + containerId + ' .chip.on').length >= max) {
-    toast(`Puoi scegliere al massimo ${max} genere${max>1?'i':''}`, true); return;
+    toast(`Puoi scegliere al massimo ${max} generi (illimitati per gli artisti verificati)`, true); return;
   }
   el.classList.toggle('on');
 }
 function genresSelected(containerId) { return [...document.querySelectorAll('#' + containerId + ' .chip.on')].map(c => +c.dataset.id); }
 
-/* Artisti verificati possono scegliere fino a 3 generi, i non verificati solo 1.
+/* Artisti verificati: generi illimitati; non verificati: fino a 3.
  * Aggiorna il tetto e l'hint, e taglia la selezione attuale se supera il nuovo massimo
  * (es. l'admin toglie la spunta "Verificato" mentre erano già selezionati più generi). */
 function setGenreVerified(p, verified) {
   const containerId = p + 'genreChips';
   const el = document.getElementById(containerId);
   if (!el) return;
-  const max = verified ? 3 : 1;
+  const max = verified ? 999 : 3;
   el.dataset.max = max;
   const hint = document.getElementById(p + 'genreMaxHint');
-  if (hint) hint.textContent = `(max ${max})`;
+  if (hint) hint.textContent = verified ? '' : '(max 3)';
   const onChips = [...el.querySelectorAll('.chip.on')];
   if (onChips.length > max) {
     onChips.slice(max).forEach(c => c.classList.remove('on'));
-    toast(`Solo gli artisti verificati possono scegliere più di un genere: tenuto il primo`, true);
+    toast(`Gli artisti non verificati possono scegliere fino a 3 generi: tenuti i primi 3`, true);
   }
 }
 
