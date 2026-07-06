@@ -180,7 +180,7 @@
             <div class="field"><label>Titolo 3</label><input id="a_cl3_t" maxlength="60" placeholder="Es. Sito ufficiale"></div>
             <div class="field"><label>Link 3</label><input id="a_cl3_u" placeholder="https://..."></div>
           </div>
-          <button type="button" class="btn primary sm" onclick="saveCustomLinksAdmin()">Salva link</button>
+          <button type="button" class="btn primary sm" onclick="saveCustomLinksAdmin(event)">Salva link</button>
         </div>
       </div>
 
@@ -353,7 +353,7 @@
         <label>Apify token <span id="st_apify_token" class="stbadge"></span></label>
         <input id="set_apify_token" placeholder="Instagram + Facebook follower">
       </div>
-      <button class="btn primary">Salva chiavi</button>
+      <button class="btn primary" id="set_submit">Salva chiavi</button>
     </form>
 
     <!-- ═══ ACCOUNT (dati dell'admin corrente) ═══ -->
@@ -477,6 +477,8 @@ function newAdmin(){
 }
 async function saveAdmin(e){ e.preventDefault();
   const bodyBase = { email:val('ad_email'), display_name:val('ad_name'), admin_super: ad_super.checked?1:0 };
+  const oldLabel = ad_submit.textContent;
+  ad_submit.disabled = true; ad_submit.textContent = 'Salvataggio…';
   try {
     if (editAdId){
       await api('admin-update-admin.php',{method:'POST',body:{...bodyBase, id:editAdId, status:val('ad_status')}});
@@ -487,6 +489,7 @@ async function saveAdmin(e){ e.preventDefault();
     }
     newAdmin(); showAdminList(); loadAdmins();
   } catch(err){ toast(errMsg(err), true); }
+  finally { ad_submit.disabled = false; ad_submit.textContent = oldLabel; }
   return false;
 }
 async function loadAdmins(){
@@ -633,8 +636,11 @@ async function loadSettings(){
 }
 async function saveSettings(e){ e.preventDefault();
   const body={}; SETKEYS.forEach(k=> body[k]=document.getElementById('set_'+k).value.trim());
+  const oldLabel = set_submit.textContent;
+  set_submit.disabled = true; set_submit.textContent = 'Salvataggio…';
   try { await api('admin-settings.php',{method:'POST',body}); toast('Chiavi salvate ✓'); loadSettings(); }
   catch(err){ toast(errMsg(err), true); }
+  finally { set_submit.disabled = false; set_submit.textContent = oldLabel; }
   return false;
 }
 
@@ -705,13 +711,16 @@ async function copyMlLinkAdmin(){
   catch (e) { a_mlUrl.select(); document.execCommand('copy'); }
   toast('Link copiato ✓');
 }
-async function saveCustomLinksAdmin(){
+async function saveCustomLinksAdmin(e){
   const v = id => document.getElementById(id).value;
   const custom_links = [1, 2, 3].map(i => ({ title: v('a_cl' + i + '_t'), url: v('a_cl' + i + '_u') })).filter(l => l.title || l.url);
+  const btn = e.target, oldLabel = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Salvataggio…';
   try {
     await api('admin-custom-links-save.php', {method:'POST', body:{ id: editAId, custom_links }});
     toast('Link salvati ✓');
   } catch (err) { toast(errMsg(err), true); }
+  finally { btn.disabled = false; btn.textContent = oldLabel; }
 }
 
 /* Profilo "Verificato" = gestito direttamente da noi: niente email/password
@@ -771,6 +780,8 @@ async function savePromoter(e){ e.preventDefault();
     comune:val('p_comune'), provincia:val('p_prov'), phone:val('p_phone'), website:val('p_web'),
     instagram:val('p_instagram'), status:val('p_status'),
   };
+  const oldLabel = p_submit.textContent;
+  p_submit.disabled = true; p_submit.textContent = 'Salvataggio…';
   try {
     if (editPId){
       await api('admin-update-promoter.php',{method:'POST',body:{...bodyBase, id:editPId, role:val('p_role')}});
@@ -782,6 +793,7 @@ async function savePromoter(e){ e.preventDefault();
     }
     newPromoter(); showPromoterList(); loadList();
   } catch(err){ toast(errMsg(err), true); }
+  finally { p_submit.disabled = false; p_submit.textContent = oldLabel; }
   return false;
 }
 
@@ -1009,37 +1021,49 @@ async function loadMyAccount(){
   if (me.user){ acc_name.value = me.user.display_name||''; acc_email.value = me.user.email||''; }
 }
 async function saveMyAccount(e){ e.preventDefault();
+  const btn = e.target.querySelector('button'), oldLabel = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Salvataggio…';
   try {
     const r = await api('account-save.php',{method:'POST',body:{display_name:acc_name.value, email:acc_email.value}});
     _me=null;
     toast(r.email_changed ? 'Email aggiornata: verifica il nuovo indirizzo per riaccedere.' : 'Dati account salvati ✓');
     asName.textContent = acc_name.value;
   } catch(err){ toast(errMsg(err), true); }
+  finally { btn.disabled = false; btn.textContent = oldLabel; }
   return false;
 }
 async function changeMyPass(e){ e.preventDefault();
   if (acc_pw.value !== acc_pw2.value){ toast('Le due password non coincidono', true); return false; }
+  const btn = e.target.querySelector('button'), oldLabel = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Salvataggio…';
   try {
     await api('password-change.php',{method:'POST',body:{current_password:acc_pwcur.value, new_password:acc_pw.value}});
     toast('Password aggiornata ✓'); acc_pw.value=acc_pw2.value='';
   } catch(err){ toast(errMsg(err), true); }
+  finally { btn.disabled = false; btn.textContent = oldLabel; }
   return false;
 }
 
 /* ---- GATE (login / bootstrap) ---- */
 async function doLogin(e){ e.preventDefault();
+  const btn = e.target.querySelector('button'), oldLabel = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Accesso…';
   try {
     const u = await api('login.php',{method:'POST',body:{email:li_email.value,password:li_pass.value}});
     if (u.user.role !== 'admin'){ toast('Questo account non è admin', true); return false; }
     _me=null; showPanel(await getMe(true));
   } catch(err){ toast(errMsg(err), true); }
+  finally { btn.disabled = false; btn.textContent = oldLabel; }
   return false;
 }
 async function doBootstrap(e){ e.preventDefault();
+  const btn = e.target.querySelector('button'), oldLabel = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Creazione…';
   try {
     await api('admin-bootstrap.php',{method:'POST',body:{token:bs_token.value, email:bs_email.value, password:bs_pass.value}});
     toast('Admin creato!'); _me=null; showPanel(await getMe(true));
   } catch(err){ toast(errMsg(err), true); }
+  finally { btn.disabled = false; btn.textContent = oldLabel; }
   return false;
 }
 </script>

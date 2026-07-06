@@ -99,7 +99,7 @@
     </div>
     <div class="mfoot">
       <button type="button" class="btn ghost" onclick="closeReq()">Annulla</button>
-      <button type="button" class="btn primary send" onclick="sendReq()">Invia richiesta</button>
+      <button type="button" class="btn primary send" id="rq_submit" onclick="sendReq()">Invia richiesta</button>
     </div>
   </div>
 </div>
@@ -200,14 +200,17 @@ function closeReq(){ document.getElementById('reqModal').classList.remove('open'
 async function sendReq(){
   const msg=(rq_msg.value||'').trim();
   if(!msg){ toast('Scrivi un messaggio',true); return; }
+  if(!(rq_comune.value||'').trim()){ toast('Indica il comune dell\'evento',true); return false; }
+  const oldLabel = rq_submit.textContent;
+  rq_submit.disabled = true; rq_submit.textContent = 'Invio…';
   try{
-    if(!(rq_comune.value||'').trim()){ toast('Indica il comune dell\'evento',true); return false; }
     await api('booking-request.php',{method:'POST',body:{
       artist_user_id:REQ.artist.user_id, event_date:REQ.date,
       event_link:(rq_link.value||'').trim()||null, comune:(rq_comune.value||'').trim()||null, message:msg}});
     toast('Richiesta inviata a '+(REQ.artist.stage_name||'artista')+'!');
     closeReq();
   }catch(err){ toast(errMsg(err),true); }
+  finally { rq_submit.disabled = false; rq_submit.textContent = oldLabel; }
 }
 init();
 </script>

@@ -184,7 +184,7 @@
             <div class="field"><label>Titolo 3</label><input id="m_cl3_t" maxlength="60" placeholder="Es. Sito ufficiale"></div>
             <div class="field"><label>Link 3</label><input id="m_cl3_u" placeholder="https://..."></div>
           </div>
-          <button type="button" class="btn primary sm" onclick="saveCustomLinksMgmt()">Salva link</button>
+          <button type="button" class="btn primary sm" onclick="saveCustomLinksMgmt(event)">Salva link</button>
         </div>
       </div>
 
@@ -396,13 +396,16 @@ async function copyMlLinkMgmt(){
   catch (e) { m_mlUrl.select(); document.execCommand('copy'); }
   toast('Link copiato ✓');
 }
-async function saveCustomLinksMgmt(){
+async function saveCustomLinksMgmt(e){
   const v = id => document.getElementById(id).value;
   const custom_links = [1, 2, 3].map(i => ({ title: v('m_cl' + i + '_t'), url: v('m_cl' + i + '_u') })).filter(l => l.title || l.url);
+  const btn = e.target, oldLabel = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Salvataggio…';
   try {
     await api('management-custom-links-save.php', {method:'POST', body:{ id: editId, custom_links }});
     toast('Link salvati ✓');
   } catch (err) { toast(errMsg(err), true); }
+  finally { btn.disabled = false; btn.textContent = oldLabel; }
 }
 
 /* ---- elimina dal form (sticky bar) ---- */

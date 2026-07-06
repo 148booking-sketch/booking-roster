@@ -75,7 +75,7 @@ body{background:#f7f7f7}
         <div class="field"><label>Titolo 3</label><input id="cl3_t" maxlength="60" placeholder="Es. Sito ufficiale"></div>
         <div class="field"><label>Link 3</label><input id="cl3_u" placeholder="https://..."></div>
       </div>
-      <button type="button" class="btn primary sm" onclick="saveCustomLinks()">Salva link</button>
+      <button type="button" class="btn primary sm" onclick="saveCustomLinks(event)">Salva link</button>
     </div>
   </section>
 </div></div><!-- /pageContent -->
@@ -106,7 +106,7 @@ async function init(){
       <div class="field"><label>Ripeti nuova password</label><input id="pf_pwnew2" type="password" minlength="8"></div>
     </div>
     <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:-6px 0 14px">
-      <button type="button" class="btn ghost sm" onclick="changePass()">Cambia password</button>
+      <button type="button" class="btn ghost sm" onclick="changePass(event)">Cambia password</button>
       <span class="hint">Password dimenticata? Esci e usa <a href="/accedi.html#recupera">Recupera password</a>.</span>
     </div>
   `);
@@ -196,13 +196,16 @@ function initMultilink(p){
   });
 }
 
-async function saveCustomLinks(){
+async function saveCustomLinks(e){
   const v = id => document.getElementById(id).value;
   const custom_links = [1, 2, 3].map(i => ({ title: v('cl' + i + '_t'), url: v('cl' + i + '_u') })).filter(l => l.title || l.url);
+  const btn = e.target, oldLabel = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Salvataggio…';
   try {
     await api('custom-links-save.php', {method:'POST', body:{custom_links}});
     toast('Link salvati ✓');
   } catch (err) { toast(errMsg(err), true); }
+  finally { btn.disabled = false; btn.textContent = oldLabel; }
 }
 
 async function copyMlLink(){
@@ -211,15 +214,18 @@ async function copyMlLink(){
   toast('Link copiato ✓');
 }
 
-async function changePass(){
+async function changePass(e){
   if (!pf_pwnew.value && !pf_pwnew2.value){ toast('Inserisci la nuova password', true); return; }
   if (pf_pwnew.value !== pf_pwnew2.value){ toast('Le due password non coincidono', true); return; }
   if (!pf_pwcur.value){ toast('Inserisci la password attuale', true); return; }
+  const btn = e.target, oldLabel = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Salvataggio…';
   try {
     await api('password-change.php',{method:'POST',body:{ current_password: pf_pwcur.value, new_password: pf_pwnew.value }});
     toast('Password aggiornata ✓');
     pf_pwcur.value = pf_pwnew.value = pf_pwnew2.value = '';
   } catch(err){ toast(errMsg(err), true); }
+  finally { btn.disabled = false; btn.textContent = oldLabel; }
 }
 
 async function save(e){ e.preventDefault();

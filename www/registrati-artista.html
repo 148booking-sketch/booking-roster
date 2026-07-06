@@ -129,6 +129,8 @@ async function doResend(){
 
 // STEP 3 → crea account
 async function doReg(e){ e.preventDefault();
+  const btn = e.target.querySelector('button'), old = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Creazione…';
   try {
     const display_name = (rg_nome.value + ' ' + rg_cognome.value).trim();
     const r = await api('register.php',{method:'POST',body:{
@@ -138,6 +140,7 @@ async function doReg(e){ e.preventDefault();
       calendar_url:cal_url.value, applemusic:am_url.value }});
     showVerify(r.email || rg_email.value);
   } catch(err){ toast(errMsg(err), true); }
+  finally { btn.disabled = false; btn.textContent = old; }
   return false;
 }
 </script>

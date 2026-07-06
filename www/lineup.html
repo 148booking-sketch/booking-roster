@@ -224,6 +224,8 @@ async function submitLineup(){
   const gs=[...document.querySelectorAll('#luGenres .fm-chip.on')].map(x=>x.dataset.slug);
   const box=document.getElementById('luResults');
   box.innerHTML='<div class="lu-empty">Cerco la combinazione migliore…</div>';
+  const oldLabel = luSubmitBtn.textContent;
+  luSubmitBtn.disabled = true; luSubmitBtn.textContent = 'Ricerca…';
   try{
     const r=await api('lineup-suggest.php',{method:'POST',body:{budget,mode,genres:gs}});
     if(mode==='piu'){
@@ -242,6 +244,7 @@ async function submitLineup(){
     if(openers.length) parts.push(openersCardHtml(openers));
     box.innerHTML = parts.join('');
   }catch(err){ box.innerHTML='<div class="lu-empty">'+esc(errMsg(err))+'</div>'; }
+  finally { luSubmitBtn.disabled = false; luSubmitBtn.textContent = oldLabel; }
 }
 init();
 </script>

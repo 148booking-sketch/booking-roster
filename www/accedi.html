@@ -68,23 +68,28 @@ async function doResend(){
 if (location.hash === '#recupera') tab('recupera');
 if (new URLSearchParams(location.search).get('verify') === 'fail') toast('Link di verifica non valido o scaduto. Accedi per reinviarlo.', true);
 async function doForgot(e){ e.preventDefault();
+  const btn = e.target.querySelector('button'), old = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Invio…';
   try {
     await api('password-forgot.php',{method:'POST',body:{email:fp_email.value}});
     toast('Se l\'email è registrata, riceverai il link tra poco.');
     setTimeout(()=>tab('login'), 800);
   } catch(err){ toast(errMsg(err), true); }
+  finally { btn.disabled = false; btn.textContent = old; }
   return false;
 }
 async function doLogin(e){ e.preventDefault();
+  const btn = e.target.querySelector('button'), old = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Accesso…';
   try {
     const u = await api('login.php',{method:'POST',body:{email:li_email.value,password:li_pass.value}});
     location.href = u.user.role==='artist' ? '/profilo.html'
       : u.user.role==='management' ? '/management.html'
       : '/cerca.html';
   } catch(err){
-    if (err.message === 'email_not_verified'){ showVerify(err.data?.email || li_email.value); return false; }
-    toast(errMsg(err), true);
-  }
+    if (err.message === 'email_not_verified'){ showVerify(err.data?.email || li_email.value); }
+    else toast(errMsg(err), true);
+  } finally { btn.disabled = false; btn.textContent = old; }
   return false;
 }
 </script>

@@ -125,7 +125,7 @@
     </div>
     <div class="mfoot">
       <button type="button" class="btn ghost" onclick="closeReq()">Annulla</button>
-      <button type="button" class="btn primary send" onclick="sendReq()">Invia richiesta</button>
+      <button type="button" class="btn primary send" id="rq_submit" onclick="sendReq()">Invia richiesta</button>
     </div>
   </div>
 </div>
@@ -352,8 +352,10 @@ async function sendReq(){
   const msg=(document.getElementById('rq_msg').value||'').trim();
   if(!date){ toast('Seleziona una data dal calendario',true); return; }
   if(!msg){ toast('Scrivi un messaggio',true); return; }
+  if(!(document.getElementById('rq_comune').value||'').trim()){ toast('Indica il comune dell\'evento',true); return false; }
+  const oldLabel = rq_submit.textContent;
+  rq_submit.disabled = true; rq_submit.textContent = 'Invio…';
   try{
-    if(!(document.getElementById('rq_comune').value||'').trim()){ toast('Indica il comune dell\'evento',true); return false; }
     await api('booking-request.php',{method:'POST',body:{artist_user_id:A.user_id, event_date:date, message:msg,
       event_link:(document.getElementById('rq_link').value||'').trim()||null,
       comune:(document.getElementById('rq_comune').value||'').trim()||null}});
@@ -361,6 +363,7 @@ async function sendReq(){
     closeReq();
     document.getElementById('rq_msg').value=''; document.getElementById('rq_link').value=''; document.getElementById('rq_comune').value='';
   }catch(err){ toast(errMsg(err),true); }
+  finally { rq_submit.disabled = false; rq_submit.textContent = oldLabel; }
 }
 init();
 </script>

@@ -69,6 +69,8 @@ async function doResend(){
 }
 
 async function doReg(e){ e.preventDefault();
+  const btn = e.target.querySelector('button'), old = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Creazione…';
   try {
     const r = await api('register.php',{method:'POST',body:{
       role:'management', display_name:rg_name.value, email:rg_email.value, password:rg_pass.value,
@@ -76,6 +78,7 @@ async function doReg(e){ e.preventDefault();
       phone:rg_phone.value, website:rg_web.value, email_alert_consent: rg_email_consent.checked }});
     showVerify(r.email || rg_email.value);
   } catch(err){ toast(errMsg(err), true); }
+  finally { btn.disabled = false; btn.textContent = old; }
   return false;
 }
 </script>

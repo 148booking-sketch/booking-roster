@@ -127,10 +127,13 @@ function initEmailPrefs(p){
 function paintSeg(){ document.querySelectorAll('#freqSeg button').forEach(b=>b.classList.toggle('on',b.dataset.f===FREQ)); }
 async function saveEmailPrefs(e){ e.preventDefault();
   if (FREQ !== 'off' && !ep_consent.checked){ toast('Serve il consenso per attivare il riepilogo', true); return false; }
+  const btn = e.target.querySelector('.savebar button'), oldLabel = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Salvataggio…';
   try {
     await api('promoter-email-prefs-save.php',{method:'POST',body:{ freq: FREQ, consent: ep_consent.checked }});
     toast('Preferenze salvate ✓');
   } catch(err){ toast(errMsg(err), true); }
+  finally { btn.disabled = false; btn.textContent = oldLabel; }
   return false;
 }
 </script>
