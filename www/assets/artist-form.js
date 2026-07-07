@@ -30,7 +30,6 @@ function artistFormHTML(p) {
       <h2 class="fsec-h">Informazioni personali</h2>
       <div class="row">
         <div class="field"><label>Nome d'arte *</label><input id="${p}stage_name" required></div>
-        <div class="field"><label>Label Musicale</label><input id="${p}label" placeholder="Nome della label"></div>
         <div class="field"><label>Agenzia</label><input id="${p}management" placeholder="Nome dell'agenzia"></div>
       </div>
       <div class="hint" id="${p}nameHint" style="margin:8px 0 14px">La foto profilo viene presa automaticamente da <b>Spotify</b> (link nella sezione Musica). Se non è collegato, assegniamo in automatico un'icona a tema in base al <b>primo genere</b> scelto qui sotto.</div>
@@ -271,7 +270,6 @@ function artistFormPopulate(p, prof) {
   set(p + 'phone', pf.phone);
   set(p + 'travel_max_km', pf.travel_max_km);
   set(p + 'website', pf.website);
-  set(p + 'label', pf.label);
   set(p + 'management', pf.management);
   setManagementLock(p, pf.manager_user_id ? (pf.manager_org_name || null) : null);
   set(p + 'cachet', pf.cachet_min ?? pf.cachet_max);
@@ -303,7 +301,7 @@ function artistFormPopulate(p, prof) {
 
 function artistFormReset(p) {
   ['stage_name', 'bio', 'calendar_url', 'comune', 'provincia', 'phone', 'travel_max_km', 'website',
-   'label', 'management', 'cachet', 'cachet_promo', 'promo_until', 'rimborso_forfait',
+   'management', 'cachet', 'cachet_promo', 'promo_until', 'rimborso_forfait',
    'durata_set_min', 'on_stage', 'tech_sheet_url', 's_sp', 's_ig', 's_fb', 's_tt', 's_yt', 's_tw', 's_am'
   ].forEach(f => { const el = document.getElementById(p + f); if (el) el.value = ''; });
   const trat = document.getElementById(p + 'cachet_trattabile'); if (trat) trat.value = '1';
@@ -332,7 +330,7 @@ function artistFormCollect(p) {
     calendar_url: v('calendar_url'),
     comune: v('comune'), provincia: v('provincia'),
     phone: v('phone'), travel_max_km: v('travel_max_km'),
-    website: v('website'), label: v('label'), management: v('management'),
+    website: v('website'), management: v('management'),
     genres: genresSelected(p + 'genreChips'),
     socials: { spotify: v('s_sp'), instagram: v('s_ig'), facebook: v('s_fb'), tiktok: v('s_tt'), youtube: v('s_yt'), twitch: v('s_tw'), applemusic: v('s_am') },
     cachet_min: v('cachet'), cachet_max: v('cachet'), cachet_trattabile: v('cachet_trattabile'),
@@ -353,6 +351,7 @@ function artistMissingFields(pf) {
   pf = pf || {};
   const soc = pf.socials ? (typeof pf.socials === 'string' ? JSON.parse(pf.socials) : pf.socials) : {};
   const filled = v => String(v ?? '').trim() !== '';
+  const trvRis = pf.trattativa_riservata == 1;
   const checks = {
     'Bio': filled(pf.bio), 'Calendario': filled(pf.calendar_url),
     'Comune': filled(pf.comune),
@@ -362,8 +361,9 @@ function artistMissingFields(pf) {
     'Tipo di show': filled(pf.formazione), 'On stage': filled(pf.componenti),
     'Generi': (pf.genres || []).length > 0,
     'Spotify': filled(soc.spotify), 'Apple Music': filled(soc.applemusic), 'Instagram': filled(soc.instagram),
-    'Cachet a serata': pf.cachet_min != null || pf.cachet_max != null,
-    'Cachet': filled(pf.cachet_trattabile), 'Viaggi': filled(pf.rimborso_tipo),
+    // Con trattativa riservata il cachet non si mostra mai (si concorda in privato): non richiesto.
+    'Cachet a serata': trvRis || pf.cachet_min != null || pf.cachet_max != null,
+    'Cachet': trvRis || filled(pf.cachet_trattabile), 'Viaggi': filled(pf.rimborso_tipo),
     'Durata set': filled(pf.durata_set_min), 'Scheda tecnica': filled(pf.tech_sheet_url),
   };
   return Object.keys(checks).filter(k => !checks[k]);

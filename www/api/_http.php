@@ -121,3 +121,12 @@ function ensure_promoter_ig_cols(): void {
       ADD COLUMN instagram_avatar VARCHAR(1000) DEFAULT NULL AFTER photo_url");
   } catch (Throwable $e) { error_log('ensure_promoter_ig_cols: ' . $e->getMessage()); }
 }
+
+/** Telefono dell'agenzia booking (promoter_profiles.phone) per un manager_user_id, o null. */
+function manager_phone(int $managerId): ?string {
+  if ($managerId <= 0) return null;
+  $st = db()->prepare('SELECT phone FROM promoter_profiles WHERE user_id = ?');
+  $st->execute([$managerId]);
+  $v = $st->fetchColumn();
+  return $v !== false && trim((string)$v) !== '' ? $v : null;
+}

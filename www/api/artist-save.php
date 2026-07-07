@@ -24,7 +24,6 @@ $phone    = trim($in['phone'] ?? '');
 $comune   = trim($in['comune'] ?? '');
 $prov     = strtoupper(trim($in['provincia'] ?? '')) ?: null;
 $website  = normalize_url($in['website'] ?? '');
-$label      = trim($in['label'] ?? '');
 $management = trim($in['management'] ?? '');
 
 $intOrNull = fn($v) => ($v === '' || $v === null) ? null : max(0, (int)$v);
@@ -47,11 +46,15 @@ $socials    = $socialsArr ? json_encode($socialsArr, JSON_UNESCAPED_UNICODE) : n
 
 // Valori "prima" del salvataggio: servono dopo, in background, per capire se bio-Spotify/
 // Instagram vanno risincronizzati subito (sync fatta DOPO la risposta: non deve rallentarla).
-$wasSt = db()->prepare('SELECT bio_from_spotify, socials, verified FROM artist_profiles WHERE user_id=?');
+$wasSt = db()->prepare('SELECT bio_from_spotify, socials, verified, manager_user_id FROM artist_profiles WHERE user_id=?');
 $wasSt->execute([$u['id']]);
 $wasRow = $wasSt->fetch();
 $wasBioFromSpotify = (int) ($wasRow['bio_from_spotify'] ?? 0);
 $wasSocials = json_decode($wasRow['socials'] ?? '', true) ?: [];
+
+// Artista gestito da un'agenzia: i contatti passano dall'agenzia, usa il suo telefono
+// (manager_user_id lo decide solo l'admin, non è nel form di auto-modifica dell'artista).
+if ((int) ($wasRow['manager_user_id'] ?? 0) > 0) $phone = manager_phone((int) $wasRow['manager_user_id']) ?? $phone;
 // Il limite generi (3 per i non verificati, illimitati per i verificati) segue il flag "verified" già in
 // DB: l'artista non può cambiarlo da sé, quindi qui vale solo lo stato attuale, non il payload.
 $maxGenres = (int) ($wasRow['verified'] ?? 0) === 1 ? PHP_INT_MAX : 3;
@@ -85,7 +88,7 @@ $sql = 'UPDATE artist_profiles SET
           comune=?, provincia=?, lat=?, lng=?,
           cachet_min=?, cachet_max=?, cachet_trattabile=?, trattativa_riservata=?, cachet_promo=?, promo_until=?, rimborso_tipo=?, rimborso_forfait=?,
           travel_max_km=?, durata_set_min=?, website=?, socials=?,
-          label=?, management=?,
+          management=?,
           tech_sheet_url=?, gear_bring=?, gear_need=?
         WHERE user_id=?';
 db()->prepare($sql)->execute([
@@ -93,7 +96,7 @@ db()->prepare($sql)->execute([
   ($comune ?: null), $prov, $lat, $lng,
   $cachetMin, $cachetMax, $trattabile, $trvRis, $cachetPromo, $promoUntil, $rimb, $rimbForf,
   $travelKm, $durata, $website, $socials,
-  ($label ?: null), ($management ?: null),
+  ($management ?: null),
   ($techUrl ?: null), $gearBringJson, $gearNeedJson,
   $u['id'],
 ]);

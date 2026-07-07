@@ -117,7 +117,6 @@ $wasSocials = json_decode($wasRow['socials'] ?? '', true) ?: [];
 $calUrl = trim($in['calendar_url'] ?? '');
 $calUrl = preg_match('#^https?://#i', $calUrl) ? $calUrl : '';
 
-$label      = trim($in['label'] ?? '');
 $management = trim($in['management'] ?? '');
 
 // Associazione a un'agenzia booking/management (opzionale): dev'essere un utente 'management'.
@@ -128,6 +127,8 @@ if ($managerId > 0) {
   $mchk->execute([$managerId]);
   if ($mchk->fetch()) $managerVal = $managerId;
 }
+// Artista gestito da un'agenzia: i contatti passano dall'agenzia, usa il suo telefono.
+if ($managerVal) $phone = manager_phone($managerVal) ?? $phone;
 
 // "Pubblicato" non è più un campo del form (si gestisce col pulsante approva/nascondi
 // nell'elenco, via admin-publish.php): se non arriva, mantieni il valore attuale invece
@@ -163,14 +164,14 @@ try {
        manager_user_id=?, stage_name=?, slug=?, formazione=?, componenti=?, bio=?, bio_from_spotify=?, phone=?, comune=?, provincia=?,
        lat=?, lng=?, cachet_min=?, cachet_max=?, cachet_trattabile=?, trattativa_riservata=?, cachet_promo=?, promo_until=?, rimborso_tipo=?, rimborso_forfait=?,
        travel_max_km=?, durata_set_min=?, website=?, socials=?, photo_url=?, calendar_url=?,
-       label=?, management=?,
+       management=?,
        tech_sheet_url=?, gear_bring=?, gear_need=?, verified=?, top8=?, published=?
      WHERE user_id=?'
   )->execute([
     $managerVal, $stage, $slug, $form, $componenti, $bio, $bioFromSpotify, $phone, ($comune ?: null), $prov,
     $lat, $lng, $cachetMin, $cachetMax, $trattabile, $trvRis, $cachetPromo, $promoUntil, $rimb, $rimbForf,
     $travelKm, $durata, $website, $socials, $photo, ($calUrl ?: null),
-    ($label ?: null), ($management ?: null),
+    ($management ?: null),
     ($techUrl ?: null), $gearBringJson, $gearNeedJson, $verified, $top8, $published,
     $id,
   ]);

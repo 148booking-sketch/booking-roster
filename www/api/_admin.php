@@ -54,6 +54,7 @@ function artist_publish_missing_fields(array $row): array {
   if (is_string($socials)) $socials = json_decode($socials, true) ?: [];
   $genreCount = $row['genre_count'] ?? (is_array($row['genres'] ?? null) ? count($row['genres']) : 0);
   $filled = fn($v) => trim((string)($v ?? '')) !== '';
+  $trvRis = (int) ($row['trattativa_riservata'] ?? 0) === 1;
 
   $checks = [
     'Bio'              => $filled($row['bio'] ?? null),
@@ -68,8 +69,9 @@ function artist_publish_missing_fields(array $row): array {
     'Spotify'          => $filled($socials['spotify'] ?? null),
     'Apple Music'      => $filled($socials['applemusic'] ?? null),
     'Instagram'        => $filled($socials['instagram'] ?? null),
-    'Cachet a serata'  => $row['cachet_min'] !== null || $row['cachet_max'] !== null,
-    'Cachet'           => $filled($row['cachet_trattabile'] ?? null),
+    // Con trattativa riservata il cachet non si mostra mai (si concorda in privato): non richiesto.
+    'Cachet a serata'  => $trvRis || $row['cachet_min'] !== null || $row['cachet_max'] !== null,
+    'Cachet'           => $trvRis || $filled($row['cachet_trattabile'] ?? null),
     'Viaggi'           => $filled($row['rimborso_tipo'] ?? null),
     'Durata set'       => $filled($row['durata_set_min'] ?? null),
     'Scheda tecnica'   => $filled($row['tech_sheet_url'] ?? null),

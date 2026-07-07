@@ -41,8 +41,10 @@ $phone   = trim($in['phone'] ?? '');
 $comune  = trim($in['comune'] ?? '');
 $prov    = strtoupper(trim($in['provincia'] ?? '')) ?: null;
 $website = normalize_url($in['website'] ?? '');
-$label      = trim($in['label'] ?? '');
 $management = trim($in['management'] ?? '');
+
+// I contatti passano dall'agenzia: usa sempre il telefono del booking loggato.
+$phone = manager_phone((int)$me['id']) ?? $phone;
 
 $intOrNull = fn($v) => ($v === '' || $v === null) ? null : max(0, (int)$v);
 $cachetMin  = $intOrNull($in['cachet_min'] ?? null);
@@ -96,13 +98,13 @@ try {
     'INSERT INTO artist_profiles
        (user_id, manager_user_id, stage_name, slug, formazione, componenti, bio, bio_from_spotify, phone, comune, provincia,
         lat, lng, cachet_min, cachet_max, cachet_trattabile, trattativa_riservata, cachet_promo, promo_until, rimborso_tipo, rimborso_forfait, travel_max_km,
-        durata_set_min, website, socials, label, management,
+        durata_set_min, website, socials, management,
         tech_sheet_url, gear_bring, gear_need, verified, top8, published)
-     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
+     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
   )->execute([
     $uid, $me['id'], $stage, $slug, $form, $componenti, $bio, $bioFromSpotify, $phone, ($comune ?: null), $prov,
     $lat, $lng, $cachetMin, $cachetMax, $trattabile, $trvRis, $cachetPromo, $promoUntil, $rimb, $rimbForf, $travelKm,
-    $durata, $website, $socials, ($label ?: null), ($management ?: null),
+    $durata, $website, $socials, ($management ?: null),
     ($techUrl ?: null), $gearBringJson, $gearNeedJson,
     $verified, $top8, $published,
   ]);
