@@ -12,7 +12,7 @@
  * Fonti: Spotify (HTML, ascoltatori) · YouTube (Data API: iscritti + RSS: ultimo video)
  *        · TikTok (tikwm) · Twitch (decapi) · Instagram+Facebook (Apify, se APIFY_TOKEN).
  *
- * ENV: ROSTER_URL (default https://artisti.148booking.it) · ROSTER_STATS_TOKEN (obbligatorio)
+ * ENV: ROSTER_URL (default https://bookingroster.it) · ROSTER_STATS_TOKEN (obbligatorio)
  *      · YOUTUBE_API_KEY (opz.) · APIFY_TOKEN (opz., per IG/FB).
  * Uso: php worker/social-stats.php
  */
@@ -22,7 +22,7 @@ date_default_timezone_set('Europe/Rome');
 function env(string $k, string $d = ''): string { $v = getenv($k); return ($v !== false && $v !== '') ? $v : $d; }
 function info(string $m): void { fwrite(STDERR, $m . "\n"); }
 
-$ROSTER_URL = rtrim(env('ROSTER_URL', 'https://artisti.148booking.it'), '/');
+$ROSTER_URL = rtrim(env('ROSTER_URL', 'https://bookingroster.it'), '/');
 $TOKEN      = env('ROSTER_STATS_TOKEN');
 $YT_KEY     = env('YOUTUBE_API_KEY');
 $APIFY      = env('APIFY_TOKEN');
