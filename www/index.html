@@ -135,8 +135,14 @@
 .agency-strip{overflow:hidden;padding:30px 0 10px;-webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)}
 .agency-strip .ac-track{display:flex;align-items:center;gap:32px;width:max-content;animation:ac-scroll 50s linear infinite}
 .agency-strip:hover .ac-track{animation-play-state:paused}
-.agency-strip img{width:56px;height:56px;border-radius:50%;object-fit:cover;flex:none;display:block;box-shadow:0 2px 8px rgba(0,0,0,.12)}
+.agency-strip .ac-item{display:block;flex:none;cursor:pointer}
+.agency-strip img{width:56px;height:56px;border-radius:50%;object-fit:cover;flex:none;display:block;box-shadow:0 2px 8px rgba(0,0,0,.12);transition:transform .15s}
+.agency-strip .ac-item:hover img{transform:scale(1.08)}
 @keyframes ac-scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+.mgr-chip{display:flex;align-items:center;gap:8px;background:#fbe9ee;color:#b81e47;border-radius:20px;padding:7px 8px 7px 14px;font-size:13px;font-weight:600;width:fit-content;margin:0 0 12px}
+.mgr-chip button{border:0;background:rgba(184,30,71,.12);color:inherit;width:20px;height:20px;border-radius:50%;cursor:pointer;font-size:11px;line-height:1;display:flex;align-items:center;justify-content:center}
+.mgr-chip button:hover{background:rgba(184,30,71,.22)}
 </style>
 </head>
 <body>
@@ -231,6 +237,10 @@
         </div>
       </div>
       <div class="az-bar" id="azBar"></div>
+      <div id="managerFilterBar" class="mgr-chip" style="display:none">
+        Agenzia: <b id="managerFilterName"></b>
+        <button type="button" onclick="clearManagerFilter()" aria-label="Rimuovi filtro">✕</button>
+      </div>
       <div id="results" class="grid-cards"></div>
       <div id="empty" class="empty" style="display:none">Nessun artista trovato con questi filtri.</div>
       <div id="loadmore" style="display:none;text-align:center;padding:20px 0">
@@ -270,7 +280,7 @@
 <script src="/assets/api.js"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-const state = { q:'', cachetMax:null, tratt:false, form:'', sort:'az', genres:new Set(), gps:null, km:'', noPrice:false, promo:false, trv:false, comune:'', kmZona:'250', letter:'' };
+const state = { q:'', cachetMax:null, tratt:false, form:'', sort:'az', genres:new Set(), gps:null, km:'', noPrice:false, promo:false, trv:false, comune:'', kmZona:'250', letter:'', manager:null, managerName:'' };
 let genres=[], lastResults=[];
 let map=null, markerLayer=null, LOCKED=false, PENDING_VERIFICATION=false, CAN_FAV=false;
 let lastArtistCount=null, promoterCount=null;
@@ -284,6 +294,7 @@ function applyParamsFromURL(){
   if(sp.get('no_price')==='1') state.noPrice=true;
   if(sp.get('promo')==='1') state.promo=true;
   if(sp.has('cachet_max')) state.cachetMax=+sp.get('cachet_max');
+  if(sp.has('manager')){ state.manager=sp.get('manager'); state.managerName=sp.get('manager_name')||''; }
   sp.getAll('genre').concat(sp.getAll('genre[]')).forEach(g=>state.genres.add(g));
   // /genere/<slug> (link diretto condivisibile): il rewrite lato server è invisibile a location.search,
   // va letto dal path come già si fa per /nome-artista in artista.html.
@@ -316,10 +327,10 @@ async function init(){
   addEventListener('scroll',()=>{ cbw.classList.toggle('stuck', cbw.getBoundingClientRect().top<1 && scrollY>40); },{passive:true});
   paintFiltBtn();
   paintAzBar();
+  paintManagerChip();
   search();
   loadPlatformStats();
   loadAgencyStrip();
-  setInterval(loadAgencyStrip, 5*60*1000); // ricontrolla periodicamente: nuove agenzie compaiono da sole, senza dover ricaricare la pagina
 }
 
 async function loadAgencyStrip(){
@@ -333,10 +344,31 @@ async function loadAgencyStrip(){
     const minUnitW = Math.max(innerWidth * 1.5, 900);
     const repeat = Math.max(1, Math.ceil(minUnitW / (ags.length * itemW)));
     const unit = Array.from({length: repeat}, () => ags).flat();
-    const imgs = unit.map(a=>`<img src="${esc(a.photo_url)}" alt="${esc(a.org_name||'')}" title="${esc(a.org_name||'')}" referrerpolicy="no-referrer" loading="lazy">`).join('');
+    const imgs = unit.map(a=>`<a href="#" class="ac-item" data-id="${a.id}" data-name="${esc(a.org_name||'')}" onclick="return pickAgency(event,this)"><img src="${esc(a.photo_url)}" alt="${esc(a.org_name||'')}" title="${esc(a.org_name||'')}" referrerpolicy="no-referrer" loading="lazy"></a>`).join('');
     acTrack.innerHTML = imgs + imgs; // duplicato per il loop continuo (translateX -50%)
     agencyStrip.style.display = '';
   }catch(e){}
+}
+
+function pickAgency(e, el){
+  e.preventDefault();
+  state.manager = el.dataset.id;
+  state.managerName = el.dataset.name;
+  paintManagerChip();
+  scrollToResults();
+  search();
+  return false;
+}
+function clearManagerFilter(){
+  state.manager=null; state.managerName='';
+  paintManagerChip();
+  search();
+}
+function paintManagerChip(){
+  const bar = document.getElementById('managerFilterBar');
+  if(!bar) return;
+  if(state.manager){ bar.style.display='flex'; document.getElementById('managerFilterName').textContent = state.managerName; }
+  else bar.style.display='none';
 }
 
 function renderSortIcons(){}
@@ -415,6 +447,7 @@ function buildFilterParams(){
   if(state.promo) p.set('promo','1');
   if(state.trv) p.set('trv','1');
   if(state.letter) p.set('letter',state.letter);
+  if(state.manager) p.set('manager',state.manager);
   if(state.form) p.set('formazione',state.form);
   if(state.gps){ p.set('lat',state.gps.lat); p.set('lng',state.gps.lng); if(state.km) p.set('max_km',state.km); }
   else if(state.comune){ p.set('comune',state.comune); p.set('max_km',state.kmZona||'250'); }
@@ -585,6 +618,7 @@ function clearFilters(){
   state.genres.clear(); state.form=''; state.cachetMax=null; state.comune=''; state.gps=null; state.km='';
   state.tratt=state.promo=state.noPrice=state.trv=false;
   state.letter=''; paintAzBar();
+  state.manager=null; state.managerName=''; paintManagerChip();
   closeFilters(); syncCatbar(); paintFiltBtn(); renderSortIcons(); search();
 }
 function resetAllFilters(){

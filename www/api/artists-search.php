@@ -11,6 +11,7 @@
  *   max_km     raggio massimo dal locale
  *   formazione solista|duo|trio|band|dj|altro
  *   sort       distance|cachet|recent   (default: distance se lat/lng, altrimenti recent)
+ *   manager    user_id dell'agenzia (manager_user_id) → solo i suoi artisti
  *   page,limit paginazione (limit max 50)
  */
 require_once __DIR__ . '/_http.php';
@@ -67,6 +68,10 @@ if (($_GET['trv'] ?? '') === '1') { $where[] = 'ap.trattativa_riservata = 1'; }
 // niente wildcard/injection dall'input utente).
 $letter = strtoupper(trim($_GET['letter'] ?? ''));
 if (preg_match('/^[A-Z]$/', $letter)) { $where[] = 'ap.stage_name LIKE ?'; $params[] = $letter . '%'; }
+
+// Carosello agenzie in home: mostra solo gli artisti gestiti da quell'agenzia
+$manager = (int) ($_GET['manager'] ?? 0);
+if ($manager > 0) { $where[] = 'ap.manager_user_id = ?'; $params[] = $manager; }
 
 // Filtro genere: match se l'artista ha ALMENO uno dei generi richiesti
 if ($genres) {
