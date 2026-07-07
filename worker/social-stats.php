@@ -149,7 +149,7 @@ foreach ($artists as $a) {
   if (!empty($a['socials']['instagram']) && ($h = ig_handle($a['socials']['instagram']))) $igHandles[$a['user_id']] = $h;
   if (!empty($a['socials']['facebook'])  && ($u = fb_url($a['socials']['facebook'])))     $fbUrls[$a['user_id']]  = $u;
 }
-$igMap = []; $igPhotos = []; $fbItems = [];
+$igMap = []; $igPhotos = []; $igAvatars = []; $fbItems = [];
 if ($APIFY && $igHandles) {
   foreach (apify_run('apify~instagram-profile-scraper', ['usernames' => array_values(array_unique($igHandles))], $APIFY) as $it) {
     $u = strtolower((string)($it['username'] ?? '')); $f = $it['followersCount'] ?? $it['followers'] ?? null;
@@ -158,6 +158,11 @@ if ($APIFY && $igHandles) {
     $photos = [];
     foreach (array_slice($it['latestPosts'] ?? [], 0, 3) as $p) { if (!empty($p['displayUrl'])) $photos[] = $p['displayUrl']; }
     if ($photos) $igPhotos[$u] = $photos;
+    // Foto profilo: l'URL CDN Instagram è firmato e scade dopo pochi giorni, va rinfrescato
+    // ad ogni giro (altrimenti l'immagine sul sito smette di caricare finché non si aggiorna
+    // a mano) — vedi resolve_photo_url()/stats-ingest.php lato sito.
+    $avatar = $it['profilePicUrlHD'] ?? $it['profilePicUrl'] ?? null;
+    if ($avatar) $igAvatars[$u] = $avatar;
   }
   info("Apify IG: " . count($igMap));
 }
@@ -178,6 +183,7 @@ foreach ($artists as $a) {
                  $vid = yt_last_video($ucid);  if ($vid) $s['youtube_video'] = $vid; } }
   if (isset($igHandles[$a['user_id']], $igMap[$igHandles[$a['user_id']]])) $s['instagram_followers'] = $igMap[$igHandles[$a['user_id']]];
   if (isset($igHandles[$a['user_id']], $igPhotos[$igHandles[$a['user_id']]])) $s['instagram_photos'] = $igPhotos[$igHandles[$a['user_id']]];
+  if (isset($igHandles[$a['user_id']], $igAvatars[$igHandles[$a['user_id']]])) $s['instagram_avatar'] = $igAvatars[$igHandles[$a['user_id']]];
   if (isset($fbUrls[$a['user_id']]) && ($v = fb_follow_for($fbUrls[$a['user_id']], $fbItems)) !== null) $s['facebook_followers'] = $v;
   $out[] = ['user_id' => $a['user_id'], 'stats' => $s];
   info(sprintf(" • %-20s %s", $a['name'] ?? $a['user_id'], json_encode($s)));
