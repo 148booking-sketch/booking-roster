@@ -59,7 +59,9 @@ if ($instagram === '') {
   $igAvatar = null; $photoUrl = null;   // link rimosso: niente più foto derivata
 } elseif ($instagram !== ($wasRow['instagram'] ?? '') || !$photoUrl) {
   $igAvatar = fetch_promoter_ig_avatar($instagram);
-  $photoUrl = $igAvatar ? '/api/ig-avatar.php?u=' . $id . '&role=promoter' : null;
+  // Scaricata subito e messa in cache locale permanente (vedi cache_avatar_image() in _social.php):
+  // niente più dipendenza dall'URL firmato Instagram che scade dopo ~4-5gg.
+  $photoUrl = $igAvatar ? (cache_avatar_image($igAvatar, $id) ? '/api/avatar-photo.php?u=' . $id : '/api/ig-avatar.php?u=' . $id . '&role=promoter') : null;
 }
 
 $pdo = db();

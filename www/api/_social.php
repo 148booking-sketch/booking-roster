@@ -1,7 +1,9 @@
 <?php
 /**
  * Deriva l'URL dell'immagine profilo di un artista dai suoi link social.
- * NON scarica nulla sul server: si salva direttamente l'URL remoto (hotlink).
+ * L'immagine (Spotify o Instagram) viene SCARICATA e salvata in cache locale permanente
+ * (vedi cache_avatar_image() sotto): così non dipende più da un URL firmato che scade
+ * (Instagram, ~4-5gg) né richiede una richiesta esterna ad ogni visita del sito (Spotify).
  * Ordine di preferenza:
  *   1. Spotify  → oEmbed pubblico (thumbnail_url), affidabile, senza auth
  *   2. Instagram / sito → meta tag og:image della pagina
@@ -119,24 +121,51 @@ function social_image_source(array $socials): ?string {
   return null;
 }
 
+function avatar_cache_dir(): string {
+  $dir = __DIR__ . '/cache/avatars';
+  if (!is_dir($dir)) @mkdir($dir, 0775, true);
+  return $dir;
+}
+
+/**
+ * Scarica un'immagine remota (Spotify/Instagram) e la salva in cache locale permanente
+ * (stesso pattern di tiktok-photo.php: .bin + .ct), servita poi da /api/avatar-photo.php.
+ * Così la foto non dipende più da un URL firmato che scade né richiede una richiesta esterna
+ * ad ogni visita. Ritorna true se il download è riuscito.
+ */
+function cache_avatar_image(string $url, int $userId): bool {
+  if (!ssrf_url_ok($url)) return false;
+  $r = http_get($url, 12, UA_BROWSER);
+  if ($r['code'] !== 200 || $r['body'] === '') return false;
+  $dir = avatar_cache_dir();
+  if (@file_put_contents("$dir/$userId.bin", $r['body']) === false) return false;
+  @file_put_contents("$dir/$userId.ct", $r['ct'] ?: 'image/jpeg');
+  return true;
+}
+
 /**
  * Foto profilo artista — logica CONDIVISA da artist-save.php, admin-create-artist.php,
  * admin-update-artist.php e refresh_artist_stats()/refresh_instagram_now() in _stats.php
  * (stessa priorità ovunque, che l'artista si modifichi da solo, lo faccia un admin, o scatti
  * il refresh periodico). Nessuna scelta manuale: è tutto automatico.
- *   1. Spotify (hotlink diretto, nessun download)
+ *   1. Spotify  → scaricata e servita via /api/avatar-photo.php (cache locale permanente)
  *   2. Instagram (l'avatar già salvato in stats.instagram_avatar dall'ultimo refresh statistiche,
- *      per chi non ha Spotify collegato) — servito via /api/ig-avatar.php, NON in hotlink diretto:
- *      il CDN di Instagram manda "Cross-Origin-Resource-Policy: same-origin" e i browser
- *      bloccherebbero l'<img> da un altro dominio (stesso motivo di /api/ig-photo.php).
+ *      per chi non ha Spotify collegato) → stesso trattamento: scaricata e messa in cache locale.
+ *      Se il download fallisce, fallback sul relay live /api/ig-avatar.php (nessuna copia persa).
  *   3. Icona automatica a tema in base al PRIMO genere musicale scelto
  *   4. Foto attuale (nessuna modifica)
  * Ritorna [url_o_null, sorgente] dove sorgente è 'social'|'auto'|'current'.
  */
 function resolve_photo_url(?string $current, array $socials, ?string $firstGenreSlug, ?string $instagramAvatar = null, int $userId = 0): array {
   $socialImg = social_image_source($socials);
-  if ($socialImg) return [$socialImg, 'social'];
-  if ($instagramAvatar && $userId > 0) return ['/api/ig-avatar.php?u=' . $userId, 'social'];
+  if ($socialImg) {
+    if ($userId > 0 && cache_avatar_image($socialImg, $userId)) return ['/api/avatar-photo.php?u=' . $userId, 'social'];
+    return [$socialImg, 'social']; // fallback: hotlink diretto se il download fallisce
+  }
+  if ($instagramAvatar && $userId > 0) {
+    if (cache_avatar_image($instagramAvatar, $userId)) return ['/api/avatar-photo.php?u=' . $userId, 'social'];
+    return ['/api/ig-avatar.php?u=' . $userId, 'social']; // fallback: relay live se il download fallisce
+  }
   if ($firstGenreSlug && file_exists(__DIR__ . '/../assets/avatars/genre-' . $firstGenreSlug . '.svg')) {
     return ['/assets/avatars/genre-' . $firstGenreSlug . '.svg', 'auto'];
   }

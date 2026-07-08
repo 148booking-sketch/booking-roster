@@ -44,7 +44,7 @@ if ($comune !== '') {
 // Foto profilo agenzia derivata da Instagram (stesso meccanismo Apify degli artisti): se non
 // disponibile (nessun token configurato o profilo non trovato) resta senza foto, va bene.
 $igAvatar = $instagram !== '' ? fetch_promoter_ig_avatar($instagram) : null;
-$photoUrl = null; // impostata sotto una volta noto $uid, serve per l'URL del relay
+$photoUrl = null; // impostata sotto una volta noto $uid, serve per l'URL della cache locale
 
 $pdo->beginTransaction();
 try {
@@ -53,7 +53,11 @@ try {
      VALUES (?, ?, ?, ?, ?, 1)'
   )->execute([$email, password_hash($pass, PASSWORD_DEFAULT), $role, $org, $status]);
   $uid = (int)$pdo->lastInsertId();
-  if ($igAvatar) $photoUrl = '/api/ig-avatar.php?u=' . $uid . '&role=promoter';
+  // Scaricata subito e messa in cache locale permanente (vedi cache_avatar_image() in _social.php):
+  // niente più dipendenza dall'URL firmato Instagram che scade dopo ~4-5gg.
+  if ($igAvatar) {
+    $photoUrl = cache_avatar_image($igAvatar, $uid) ? '/api/avatar-photo.php?u=' . $uid : '/api/ig-avatar.php?u=' . $uid . '&role=promoter';
+  }
 
   $pdo->prepare(
     'INSERT INTO promoter_profiles

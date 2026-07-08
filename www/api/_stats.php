@@ -199,6 +199,47 @@ function apify_instagram_data(string $handle, string $token): array {
   return $out;
 }
 
+/** Stessi dati (follower, ultime foto, avatar) via l'endpoint pubblico web_profile_info di
+ *  Instagram, SENZA Apify e senza credito. Dall'IP dell'hosting Instagram a volte soft-blocca
+ *  (HTTP 200 con {"status":"ok"} vuoto, o risposta vuota): in quel caso ritorna null e il
+ *  chiamante ricade su Apify. Ritorna la stessa forma di apify_instagram_data(). */
+function ig_direct_data(string $handle): ?array {
+  $h = ig_handle_norm($handle);
+  if (!$h) return null;
+  $ch = curl_init('https://www.instagram.com/api/v1/users/web_profile_info/?username=' . rawurlencode($h));
+  curl_setopt_array($ch, [
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_TIMEOUT        => 15,
+    CURLOPT_USERAGENT      => UA_BROWSER,
+    CURLOPT_HTTPHEADER     => ['x-ig-app-id: 936619743392459', 'Accept: */*', 'Accept-Language: it,en;q=0.8'],
+  ]);
+  $raw  = curl_exec($ch);
+  $code = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+  curl_close($ch);
+  if ($code !== 200 || !$raw) return null;
+  $u = (json_decode($raw, true)['data']['user'] ?? null);
+  if (!is_array($u)) return null;   // soft-block: {"status":"ok"} senza data.user
+  $out = ['followers' => null, 'photos' => [], 'avatar' => null];
+  $f = $u['edge_followed_by']['count'] ?? null;
+  if (is_numeric($f)) $out['followers'] = (int) $f;
+  foreach (array_slice($u['edge_owner_to_timeline_media']['edges'] ?? [], 0, 4) as $e) {
+    $img = $e['node']['display_url'] ?? null;
+    if ($img) $out['photos'][] = $img;
+  }
+  $out['avatar'] = $u['profile_pic_url_hd'] ?? $u['profile_pic_url'] ?? null;
+  return $out['avatar'] ? $out : null;   // valido solo se abbiamo almeno l'avatar
+}
+
+/** Dati Instagram con strategia "gratis-prima": prova l'endpoint pubblico diretto (nessun
+ *  credito Apify), e SOLO se bloccato/vuoto ricade su Apify. Da usare al posto di
+ *  apify_instagram_data() ovunque servano i dati Instagram di un profilo. */
+function ig_profile_data(string $handle, string $token): array {
+  $direct = ig_direct_data($handle);
+  if ($direct !== null) return $direct;
+  if ($token === '') return ['followers' => null, 'photos' => [], 'avatar' => null];
+  return apify_instagram_data($handle, $token);
+}
+
 /**
  * Avatar Instagram per il profilo agenzia/promoter: stesso meccanismo Apify delle statistiche
  * artista, ma qui serve solo la foto profilo (non follower/post). Usata da admin-create-promoter
@@ -208,9 +249,9 @@ function apify_instagram_data(string $handle, string $token): array {
  */
 function fetch_promoter_ig_avatar(string $instagramInput): ?string {
   $h = ig_handle_norm($instagramInput);
-  $token = stats_cred('apify_token');
-  if (!$h || $token === '') return null;
-  return apify_instagram_data($h, $token)['avatar'] ?: null;
+  if (!$h) return null;
+  // Prova prima l'endpoint diretto (gratis): funziona anche senza token Apify configurato.
+  return ig_profile_data($h, stats_cred('apify_token'))['avatar'] ?: null;
 }
 
 /** Rifà subito follower+foto Instagram e li fonde nelle stat salvate (senza toccare gli altri
@@ -219,8 +260,8 @@ function fetch_promoter_ig_avatar(string $instagramInput): ?string {
  *  riflettersi subito sulla foto profilo, non restare "intrappolato" solo in stats). */
 function refresh_instagram_now(int $userId, string $igUrl, string $token): void {
   $h = ig_handle_norm($igUrl);
-  if (!$h || $token === '') return;
-  $ig = apify_instagram_data($h, $token);
+  if (!$h) return;
+  $ig = ig_profile_data($h, $token);   // endpoint diretto (gratis) → fallback Apify
   if ($ig['followers'] === null && !$ig['photos'] && !$ig['avatar']) return;
   $st = db()->prepare('SELECT stats, photo_url, socials FROM artist_profiles WHERE user_id=?');
   $st->execute([$userId]);
@@ -382,7 +423,7 @@ function refresh_artist_stats(int $userId, array $socials, bool $withApify = fal
   if ($withApify && $apifyTok !== '') {
     $changed = false;
     if (!empty($socials['instagram']) && ($h = ig_handle_norm($socials['instagram']))) {
-      $ig = apify_instagram_data($h, $apifyTok);
+      $ig = ig_profile_data($h, $apifyTok);   // endpoint diretto (gratis) → fallback Apify
       if ($ig['followers'] !== null) { $s['instagram_followers'] = $ig['followers']; $changed = true; }
       if ($ig['photos'])             { $s['instagram_photos']    = $ig['photos'];    $changed = true; }
       if ($ig['avatar'])             { $s['instagram_avatar']    = $ig['avatar'];    $changed = true; }
